@@ -1,0 +1,7 @@
+- Why is initialValue a generator and not a constant (dimension)
+- db.database -> ugly
+- does extend belong to dimension?
+- ext2int in analytics?
+- change on row and columns but not for measures
+
+

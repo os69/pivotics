@@ -1,0 +1,4 @@
+#!/bin/sh
+(sleep 2 && xdg-open http://localhost:51000/app/pivotics.html)&
+echo http://localhost:51000/app/pivotics.html
+python2 server/server.py 
