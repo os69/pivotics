@@ -213,7 +213,7 @@ define([], function() {
 
 		// append title
 		var appendTitle = function(parentNode, field) {
-			parentNode.append("<td colspan=2>" + field.title + "</td>");
+			parentNode.append("<td colspan=2><b>" + field.title + "</b></td>");
 		};
 
 		// append input field
@@ -255,7 +255,8 @@ define([], function() {
 					callback();
 				}
 			} ],
-			title : options.title
+			title : options.title,
+			width:400
 		});
 	};
 

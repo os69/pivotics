@@ -436,7 +436,7 @@ define([ "pivotics.core", "pivotics.cellrenderer", "pivotics.analytics" ], funct
 			// assemble row fields
 			var fields = [];
 			fields.push({
-				title : "Row Attributes"
+				title : "Rows:"
 			});
 			for ( var col = 0; col < self.resultSet.axis1Table.numberDimensions; ++col) {
 				var readonly = false;
@@ -457,7 +457,7 @@ define([ "pivotics.core", "pivotics.cellrenderer", "pivotics.analytics" ], funct
 
 			// assemble col fields
 			fields.push({
-				title : "Column Attributes"
+				title : "Columns:"
 			});
 			for ( var i = 0; i < self.resultSet.axis2Table.numberTuples; ++i) {
 				if (!self.resultSet.measureInfo.measuresOnRows) {
@@ -498,7 +498,7 @@ define([ "pivotics.core", "pivotics.cellrenderer", "pivotics.analytics" ], funct
 			// add dimensions from parent pivot table
 			if (self.parentTable) {
 				fields.push({
-					title : "Parent Table Attributes"
+					title : "Parent Table:"
 				});
 				var tmpFields = self.parentTable.table.getFields(self.parentTable.cellData);
 				for ( var i = 0; i < tmpFields.length; ++i) {
@@ -515,7 +515,7 @@ define([ "pivotics.core", "pivotics.cellrenderer", "pivotics.analytics" ], funct
 			var missingDimensions = self.determineMissingDimensions(inputDimensions);
 			if (missingDimensions.length > 0) {
 				fields.push({
-					title : "Not displayed Attributes"
+					title : "Not displayed:"
 				});
 				for ( var i = 0; i < missingDimensions.length; ++i) {
 					var dimension = missingDimensions[i];
