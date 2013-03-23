@@ -1,64 +1,39 @@
 #!/usr/bin/python
 
-# Copyright Jon Berg , turtlemeat.com
-# Modified by nikomu @ code.google.com     
-
+# import packages
+# ===============================================================
+import os 
 import string,cgi,time
-from os import curdir, sep
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 import threading
 import json
+import getopt
+import sys
 
-
+# global fields
+# ===============================================================
 FILE_LOCK = threading.Lock()
+CWD = os.path.abspath('.')
+MIMETYPES = { 'css'  : 'text/css',
+              'json' :'application/json',
+              'html' : 'text/html',
+              'png'  : 'image/png',
+              'gif'  : 'image/gif',
+              'jpg'  : 'image/jpeg'
+            }
 
+# server
+# ===============================================================
 class MultiThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     pass
 
-import os # os. path
-
-CWD = os.path.abspath('.')
-MIMETYPES = { '.css'  : 'text/css',
-              'json' :'application/json'
-            }
-
-## print CWD
-
-# PORT = 8080     
-UPLOAD_PAGE = 'upload.html' # must contain a valid link with address and port of the server     s
-
-
-def make_index( relpath ):     
-
-    abspath = os.path.abspath(relpath) # ; print abspath
-    flist = os.listdir( abspath ) # ; print flist
-    
-    rellist = []
-    for fname in flist :     
-        relname = os.path.join(relpath, fname)
-        rellist.append(relname)
-    
-    # print rellist
-    inslist = []
-    for r in rellist :     
-        inslist.append( '<a href="%s">%s</a><br>' % (r,r) )
-    
-    # print inslist
-    
-    page_tpl = "<html><head></head><body>%s</body></html>"     
-    
-    ret = page_tpl % ( '\n'.join(inslist) , )
-    
-    return ret
-
-
-# -----------------------------------------------------------------------
-
-class MyHandler(BaseHTTPRequestHandler):
+# request handler
+# ===============================================================
+class PivoticsHandler(BaseHTTPRequestHandler):
 
     def getMimeType(self,path):
-        ext = path[-4:].lower()
+        ext = os.path.splitext(path)[1][1:]
         try:
             return MIMETYPES[ext]
         except KeyError:
@@ -68,54 +43,25 @@ class MyHandler(BaseHTTPRequestHandler):
         try:
             
             path = self.path.split("?",1)[0]
+            filepath = path[1:] # remove leading '/'     
             
-            if path == '/' :     
-                page = make_index( '.' )
-                self.send_response(200)
-                self.send_header('Content-type',    'text/html')
-                self.end_headers()
-                self.wfile.write(page)
-                return     
-
-            if path.endswith(".html"):
-                print "xx ",curdir + sep + path
-                f = open(curdir + sep + path)
-                #note that this potentially makes every file on your computer readable by the internet
-
-                self.send_response(200)
-                self.send_header('Content-type',    'text/html')
-                self.end_headers()
-                self.wfile.write(f.read())
-                f.close()
-                return
-                
-            else : # default: just send the file     
-                
-                filepath = path[1:] # remove leading '/'     
-            
-                f = open( os.path.join(CWD, filepath), 'rb' ) 
-                #note that this potentially makes every file on your computer readable by the internet
-
-                self.send_response(200)
-                self.send_header('Content-type',    self.getMimeType(filepath))
-                self.end_headers()
-                self.wfile.write(f.read())
-                f.close()
-                return
-
-            return # be sure not to fall into "except:" clause ?       
-                
-        except IOError as e :  
-            # debug     
+            f = open( os.path.join(CWD, filepath), 'rb' ) 
+          
+            self.send_response(200)
+            self.send_header('Content-type', self.getMimeType(filepath))
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()  
+                          
+        except IOError as e : 
             print e
-            self.send_error(404,'File Not Found: %s' % self.path)
-     
+            self.send_error(500,'Error for path: %s Error: %s' % (self.path,e))
 
     def do_POST(self):
 
         # read data
         length = int(self.headers.getheader('content-length'))
-        data = self.rfile.read(length) # Why Does this line break persistance!
+        data = self.rfile.read(length) 
         version = self.getVersion(data)
         
         # assemble filename
@@ -157,19 +103,57 @@ class MyHandler(BaseHTTPRequestHandler):
         finally:
             FILE_LOCK.release()
             
-
     def getVersion(self,data):
         data = json.loads(data)
         return data['header']['version']            
 
+# usage
+# ===============================================================
+def usage():
+    print ""
+    print "python server.py OPTIONS"
+    print ""
+    print "OPTIONS:"
+    print "  --help, -h                 print help"
+    print "  --port=PORT, -p PORT       server listening port"
+    print "  --server=ADDR, -s ADDR     server address" 
+    
+# main
+# ===============================================================
 def main():
 
+    # defaults
+    host = ''
+    port = 51000
+    
+    # read options
     try:
-        server = MultiThreadedHTTPServer(('', 51000), MyHandler)
-        print 'started httpserver...'
+        opts, args = getopt.getopt(sys.argv[1:], "hs:p:", ["help","server=", "port="])
+    except getopt.GetoptError as err:
+        print str(err) 
+        usage()
+        sys.exit(2)
+    output = None
+    verbose = False
+    for o, a in opts:
+        if o in ("-p", "--port"):
+            port = int(a)
+        elif o in ("-s", "--server"):
+            host = a
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        else:
+            assert False, "unhandled option"
+                
+    # start server
+    try:
+        server = MultiThreadedHTTPServer((host, port), PivoticsHandler)
+        print 'started httpserver'
+        print 'host:',host
+        print 'port:',port
         server.serve_forever()
     except KeyboardInterrupt:
-        print '^C received, shutting down server'
         server.socket.close()
 
 if __name__ == '__main__':
