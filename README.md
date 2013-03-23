@@ -231,7 +231,7 @@ In the *Pivotics* toolbar choose EXPORT to export your data set to CSV.
 # CSS
 By default *Pivotics* uses a dark theme (black.css). You can specify alternative CSS file in the URL, for instance
    
-   ...&css=white.css
+    ...&css=white.css
 
 
 
