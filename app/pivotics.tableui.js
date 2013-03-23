@@ -66,7 +66,7 @@ define([ "pivotics.core", "pivotics.cellrenderer", "pivotics.analytics" ], funct
 
 			var self = this;
 			self.parentNode = parentNode;
-			self.tableNode = $("<table border='1' style='border-collapse:collapse;text-align:left'></table>");
+			self.tableNode = $("<table class='tableui'></table>");
 			var fillSpace = false;
 
 			for ( var rowIndex = 0; rowIndex < self.resultSet.axis1Table.numberTuples + self.resultSet.axis2Table.numberDimensions; ++rowIndex) {

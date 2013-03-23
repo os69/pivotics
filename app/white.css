@@ -221,3 +221,17 @@ td.tableoptionsui_leaf {
 	position: relative;
 	top: 1px;
 }
+
+.tableui{
+	border-collapse:collapse;
+	text-align:left;	
+	border-style: solid;
+	border-width:1px;
+}
+
+.tableui td{
+	border-collapse:collapse;
+	text-align:left;	
+	border-style: solid;
+	border-width:1px;
+}
