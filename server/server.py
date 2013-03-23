@@ -65,7 +65,7 @@ class PivoticsHandler(BaseHTTPRequestHandler):
         version = self.getVersion(data)
         
         # assemble filename
-        filename = os.path.join(curdir,self.path[1:])
+        filename = os.path.join(CWD,self.path[1:])
         
         # lock
         if not FILE_LOCK.acquire(False):        

@@ -358,11 +358,11 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
 			var databaseName = $("#databaseInput").val();
 			core.url().parameter('db', databaseName).submit();
 			database.name(databaseName);
-			database.save(function(ok) {
+			database.save(function(ok,error) {
 				if (ok) {
 					alert("ok");
 				} else {
-					alert("error when saving");
+					alert("error when saving:"+error.statusText);
 				}
 			});
 		});

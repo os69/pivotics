@@ -441,10 +441,10 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 				}),
 				processData : false,
 				dataType : 'json'
-			}).error(function() {
+			}).error(function(error) {
 				self.header.version--; // undo version increment
 				if (callback) {
-					callback(false);
+					callback(false,error);
 				}
 			}).success(function() {
 				if (callback) {
