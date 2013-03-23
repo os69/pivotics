@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Pivotics by os69</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Pivotics</h1>
+        <h2>a pivot table editor</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/os69/pivotics/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/os69/pivotics/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/os69/pivotics" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        
+
+<h1>TOC</h1>
+
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#history">History</a></li>
+<li><a href="#browsersupport">Browser Support</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#import">Import</a></li>
+<li><a href="#configure">Configure</a></li>
+<li><a href="#analyze">Analyze</a></li>
+<li><a href="#loadsave">Loading and Storing the Database</a></li>
+<li><a href="#export">Export to CSV</a></li>
+<li><a href="#css">CSS</a></li>
+</ul><p><a name="introduction"></a></p>
+
+<h1>Introduction</h1>
+
+<p><em>Pivotics</em> is a HTML5 based <a href="http://en.wikipedia.org/wiki/Pivot_table">pivot table</a> editor. It allows you to</p>
+
+<ul>
+<li>Import CSV data</li>
+<li>Configure the imported data, especially
+
+<ul>
+<li>Configure the data types of the imported columns</li>
+<li>Set an aggregation function</li>
+<li>Define key fields</li>
+</ul>
+</li>
+<li>Analyze the imported data by defining table views.
+
+<ul>
+<li>Define table views by distributing fields on rows and columns</li>
+<li>Aggregate (for instance sum) columns</li>
+<li>Edit the data</li>
+<li>Create new table lines</li>
+<li>Use icons in columns</li>
+<li>Filter data<br>
+</li>
+</ul>
+</li>
+<li>Export to CSV</li>
+<li>
+<em>Pivotics</em> includes a simple python based webserver which you can use in your local network for loading and storing data. Optionally you can use also your own webserver. </li>
+<li>The state of the <em>Pivotics</em> UI is stored in the URL so you can easly send links to other people.</li>
+</ul><p><em>Pivotics</em> also has some drawbacks you should now:</p>
+
+<ul>
+<li>It is not designed for a huge amount of data. I tested it with up to 500 records and about 10 attributes per record.
+<em>Pivotics</em> is a HTML5 based application which means that all the application logic is running in javascript in your browser.
+Whenever you change a table cell or create a new record there is a full table rendering roundtrip. Actually for my 500 records database
+I oberserve no lag of time but for larger datasets this will happen.</li>
+<li>Im am a technician an actually hate to develop UIs. So regarding usability <em>Pivotics</em> may be suboptimal.</li>
+</ul><p><a href="http://en.wikipedia.org/wiki/Pivot_table">Pivot tables</a> are a great and well known concept in <a href="http://en.wikipedia.org/wiki/Online_analytical_processing">OLAP</a>.</p>
+
+<p>Also if you don't like <em>Pivotics</em> I encourage you to test the pivot table implementation in <a href="http://office.microsoft.com/en-us/excel-help/pivottable-reports-101-HA001034632.aspx">Microsoft Excel</a> or in <a href="http://openoffice.blogs.com/openoffice/2006/11/data_pilots_in_.html">Open Office</a>.</p>
+
+<p><a name="history"></a></p>
+
+<h1>History</h1>
+
+<p>Some years ago my software company decided to switch to scrum development mode. The company offered
+some scrum software tools for project management. Unfortunately and as expected it turned out that all the tools
+were not suitable for the scrum approach in my team. This may not due to the quality of the software
+but perhaps my team was too agile for these tools: </p>
+
+<ul>
+<li>Typically the tools offer the possibility to categorize
+the development jobs by backlog items and tasks. In practice we noticed that this hierarchy is too inflexible.
+Sometimes you only need two hierarchy levels for categorization sometimes it is three or four.</li>
+<li>We also
+observed that a single development task has several aspects: So for each eask task there is development and testing.
+Sometimes you want to support multiple technologies or platforms which adds another dimension to the scrum planning
+schema.</li>
+<li>Developers hate administration task. In the scrum tools offered by my company it took severaly mouse clicks to confirm a task.
+So developers tend to boycott the tools.</li>
+</ul><p>In order to overcome these problems I developed <em>Pivotics</em> a HTLM5 based tool for configuring and editing pivot tables.
+In fact this is not a pure scrum tool instead it allows you to create and edit arbitrary column based data (like a database table) and
+to define own table views on this data.
+Whether you use the tools for scrum planning, organizing your private TODO, or maintain the shopping list of your girlfriend is up to you.</p>
+
+<p><a name="browsersupport"></a></p>
+
+<h1>Browser Support</h1>
+
+<p><em>Pivotics</em> relies on HTML5. It does work well with Firefox and Chrome. I have no glue whether it does work in Internet Explorer.</p>
+
+<p><a name="installation"></a></p>
+
+<h1>Installation</h1>
+
+<h2>Using Included Python Webserver</h2>
+
+<p>Ensure that <a href="http://www.python.org/">Python 2</a> is installed.</p>
+
+<p>Download <a href="https://github.com/os69/pivotics/archive/master.zip">Pivotics</a> and unzip the archive. Switch to 
+the pivotics directory and start the included python based webserver by</p>
+
+<pre><code>python server/server.py
+</code></pre>
+
+<p>Open </p>
+
+<pre><code>http://localhost:51000/app/pivotics.html
+</code></pre>
+
+<p>in your webbrowser. Do not connect this webserver to the public internet. 
+This server is highly insecure an could expose your complete filesystem to the public!</p>
+
+<h2>Custom Webserver</h2>
+
+<p>Instead of using the included webserver you can also extract the archive in www directory of a professional 
+web server. This should work for all GET requests. <em>Pivotics</em> uses a POST request to store data on the server. Probably you need
+to enable  POST requests in your webserver configuration.</p>
+
+<p><a name="import"></a></p>
+
+<h1>Import</h1>
+
+<p>In the <em>Pivotics</em> toolbar choose IMPORT. Select a CSV file. You can find an example file in  </p>
+
+<pre><code>pivotics/data/test1.csv. 
+</code></pre>
+
+<p>Then press the upload button.
+You should get a message which informs you about the number of imported records.</p>
+
+<p><a name="configure"></a></p>
+
+<h1>Configure</h1>
+
+<p>In the <em>Pivotics</em> toolbar choose CONFIGURE. You will get a list of all the columns of your dataset.
+The test data set contains an example for doing a small scrum planning. </p>
+
+<table>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>backlogitem</td>
+<td>Main category of development tasks</td>
+</tr>
+<tr>
+<td>task</td>
+<td>Task within a backlog item</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Type of the task, for instance dev=development or test=create test case</td>
+</tr>
+<tr>
+<td>name</td>
+<td>Responsible developer</td>
+</tr>
+<tr>
+<td>status</td>
+<td>Status like open or finished</td>
+</tr>
+<tr>
+<td>prio</td>
+<td>Priority 1,2,3...</td>
+</tr>
+<tr>
+<td>effort</td>
+<td>Effort</td>
+</tr>
+<tr>
+<td>icon</td>
+<td>test column for demonstrating how to include icons into a table</td>
+</tr>
+</table><p>Here is a suggestion how to configure the columns:</p>
+
+<p><img alt="configure screen" src="doc/configure.jpg"></p>
+
+<h2>Key Fields</h2>
+
+<p>You can set a checkbox for each keyfield. <em>Pivotics</em> will ensure that there are no records with identical key.</p>
+
+<h2>Type</h2>
+
+<p>Currently the following types are supported: String, Integer, Float and Icon. By using the type icon
+you can display icons in columns. </p>
+
+<h2>Initial Value</h2>
+
+<p>Does allow you to define an initial value which for instance is relevant when creating new records.</p>
+
+<h2>Aggregation</h2>
+
+<p>The following aggregation functions are supported:</p>
+
+<ul>
+<li>Sum: Calculates the sum of columns. Only useful for type Integer or Float.</li>
+<li>Statistic: Create a statistic. For each value of a column you will get the number of records with this value.</li>
+<li>List: String concatenation of all columns, separator is line break.</li>
+</ul><p><a name="analyze"></a></p>
+
+<h1>Analyze</h1>
+
+<p>In the <em>Pivotics</em> toolbar choose ANALYZE. You will get the calculated default view of your data wich probably looks ugly.</p>
+
+<h2>Configure the Table View</h2>
+
+<p>You can configure the table view in the options dialog. Move fields to the rows, columns or cells area by drag &amp; drop.
+Drag &amp; Drop is a little bit fiddly. You may need to move the mouse carefully to find out the right drop area.
+After choosing apply you will see the result table below. You can close the options dialog by clicking on options.
+Rows and Columns work in an identical way: Think of an coordination system with two axis: row and column axis.
+On each axis the field values are sequentially arranged. In case you put more than one field on an axis you will
+get a nested structure. Values of cell fields are aggregated and displayed in the center area. Pivot tables are
+a powerful tool but a little bit difficult to explain. So I suggest that you play a little bit with the configuration
+dialog in order to find out whats behind.</p>
+
+<p><img alt="analyze screen" src="doc/analyze1.jpg"></p>
+
+<p>You may have noticed that there is a special field name 'measure' in the column area. This field is only relevant if
+there is more than one field in the cell area. For testing you may put 'measure' on rows. You will notice that
+the cell fields are now listed sequentially on rows.</p>
+
+<p>Some functionalities like creating new records will only work if 'measure' is in the column area.</p>
+
+<h2>Change fields</h2>
+
+<p>You can change fields by clicking on a table entry of the rows, columns or cells area.</p>
+
+<p><img alt="analyze screen" src="doc/analyze2.jpg"></p>
+
+<h2>Create, Change or Delete Records</h2>
+
+<p>You can create, change or delete records by the context menu.</p>
+
+<p><img alt="analyze screen" src="doc/analyze3.jpg"></p>
+
+<h2>Filtering</h2>
+
+<p>Records can be filtered by entering Javascript expressions into the filters fields. This is not very
+user friendly but on the other hand it is powerful. For instance:</p>
+
+<pre><code>this.type==="dev"
+</code></pre>
+
+<p>will restrict the records to those of type development.</p>
+
+<h2>Subtotals</h2>
+
+<p>Enter a number into the Number of sum fields field to get subtotals. The number determines on how many levels you will get the subtotals.</p>
+
+<h2>Pivot in Pivot</h2>
+
+<p>Sometime it is useful to have a pivot table within a pivot table. In the scrum example a typical use case 
+are tasks only occuring in the test area (central test and review meeting in the example). Without pivot in pivot
+you could end with a lot of empty columns.</p>
+
+<p><img alt="pivot in pivot" src="doc/pivotinpivot.jpg"></p>
+
+<h2>Icons</h2>
+
+<p>In case the datatype of the column is icon the value is displayed by a icon. Enter one of the following value</p>
+
+<pre><code>1_ok
+2_warning
+3_error
+</code></pre>
+
+<p>In case you want to add own icons place them in folder app/images.   </p>
+
+<h2>Table layout and URL</h2>
+
+<p>The table layout is stored in the URL. So you can send the URL via email. The receiver should get the identical table layout. </p>
+
+<p><a name="loadsave"></a></p>
+
+<h1>Loading and Storing the Database</h1>
+
+<p>You can load and save data sets. The data is stored in JSON format. The data file includes a version number. 
+When using the included webserver there is a rudimentary protection preventing data loss when concurrently
+saving by different users: The first user will win and the second user will get an error message. Actually 
+there should be a merge and conflict resolution mechanism but is not. When using your own webserver you
+need to use your own mechanism for ensuring data consistency (maybe by a PHP request handler).</p>
+
+<p><img alt="analyze screen" src="doc/loadsave.jpg"></p>
+
+<p><a name="export"></a></p>
+
+<h1>Export to CSV</h1>
+
+<p>In the <em>Pivotics</em> toolbar choose EXPORT to export your data set to CSV.</p>
+
+<p><a name="css"></a></p>
+
+<h1>CSS</h1>
+
+<p>By default <em>Pivotics</em> uses a dark theme (black.css). You can specify alternative CSS file in the URL, for instance</p>
+
+<pre><code>...&amp;css=white.css
+</code></pre>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
