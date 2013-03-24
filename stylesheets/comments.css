@@ -1,0 +1,48 @@
+div.comment-create {
+	margin-bottom: 20px;
+}
+
+div.comment-container {
+	border-width: 1px;
+	border-style: solid;	
+	border-color:gray;
+	margin-bottom: 20px;
+}
+
+
+div.comment-header {
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: gray;
+}
+
+img.comment-gravatar {
+	height: 30px;
+	vertical-align:middle;
+}
+
+span.comment-id{
+	margin-left: 10px;
+}
+
+
+span.comment-date{
+		margin-left: 10px;
+		color:gray;
+		font-size: 0.7em;
+}
+
+div.comment-body{
+	color: #B5E853;
+	background-color: black;
+	padding:5px;
+}
+
+.comment-link a{
+	color:inherit;
+	text-decoration: none;
+}
+
+.comment-link a:hover{
+	text-decoration: underline;
+}
