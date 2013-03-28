@@ -1,0 +1,20 @@
+{
+  "name": "Hello Packaged App",
+  "description": "Demonstration to create a simple packaged app",
+  "version": "11.4.2.2",
+    "manifest_version": 2,
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "app": {
+    "launch": {
+      "local_path": "app/pivotics.html"
+    }
+  },
+  "icons": {
+    "32": "error_32.png",
+    "128": "error_128.png"
+  },
+   "permissions": [
+    "unlimitedStorage",
+    "notifications"
+  ]
+}

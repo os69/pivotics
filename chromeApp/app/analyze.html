@@ -1,0 +1,24 @@
+
+<div>
+<a id="tableoptions_toggle" href="#">Options</a>
+</div>
+
+<div id="tableoptions">
+	<div id="tableoptions1"></div>
+	<div>Number of sum fields: <input type="text" id="sumfields" /></div>
+	Filters:
+	<textarea id="filterarea"></textarea>
+	<div>
+	<input type='checkbox' id='pinp'>Pivot in Pivot</input>
+	</div>
+	<div id="tableoptions2"></div>
+	<button id="tableoptions_button" class="button">Apply</button>
+</div>
+
+<div id="pivot"></div>
+
+<script>
+     	require(["pivotics.main"],function(main){
+     	main.initAnalyze();
+     	});
+</script>
