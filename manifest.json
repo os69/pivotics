@@ -10,7 +10,8 @@
     }
   },
   "icons": {
-    "128": "icon/icon_128.png"
+    "128": "chromeapp/icon_128.png",
+    "16": "chromeapp/icon_16.png"
   },
    "permissions": [
     "unlimitedStorage",
