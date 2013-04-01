@@ -1,115 +1,119 @@
 define([ "pivotics.core" ], function(core) {
 
-    var fs = null;
-    fs = {
+	var fs = null;
+	fs = {
 
-        init : function(callback) {
-            window.webkitStorageInfo.requestQuota(window.PERSISTENT, 20 * 1024 * 1024, function(grantedBytes) {
-                console.log("I was granted " + grantedBytes + " bytes.");
-                window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(fileSystem) {
-                    fs.fileSystem = fileSystem;
-                    callback();
-                }, function() {
-                    alert("error request filesystem");
-                });
-            }, function() {
-                alert("error request quota");
-            });
-        },
+		init : function(onSuccess, onError) {
+			if (!onError) {
+				onError = fs.onError;
+			}
+			window.webkitStorageInfo.requestQuota(window.PERSISTENT, 20 * 1024 * 1024, function(grantedBytes) {
+				window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(fileSystem) {
+					fs.fileSystem = fileSystem;
+					onSuccess();
+				}, onError);
+			}, onError);
+		},
 
-        save : function(filename, data, callback) {
-            if (!fs.fileSystem) {
-                fs.init(function() {
-                    fs.doSave(filename, data, callback);
-                });
-            } else {
-                fs.doSave(filename, data, callback);
-            }
-        },
+		save : function(filename, data, onSuccess, onError) {
+			if (!onError) {
+				onError = fs.onError;
+			}
+			if (!fs.fileSystem) {
+				fs.init(function() {
+					fs.doSave(filename, data, onSuccess, onError);
+				}, onError);
+			} else {
+				fs.doSave(filename, data, onSuccess, onError);
+			}
+		},
 
-        read : function(filename, callback) {
-            if (!fs.fileSystem) {
-                fs.init(function() {
-                    fs.doRead(filename, callback);
-                });
-            } else {
-                fs.doRead(filename, callback);
-            }
-        },
-        
-        doRead : function(filename, callback) {
-            fs.fileSystem.root.getFile(filename, {}, function(fileEntry) {
+		read : function(filename, onSuccess, onError) {
+			if (!onError) {
+				onError = fs.onError;
+			}
+			if (!fs.fileSystem) {
+				fs.init(function() {
+					fs.doRead(filename, onSuccess, onError);
+				}, onError);
+			} else {
+				fs.doRead(filename, onSuccess, onError);
+			}
+		},
 
-                fileEntry.file(function(file) {
-                    
-                    var reader = new FileReader();
+		doRead : function(filename, onSuccess, onError) {
+			if (!onError) {
+				onError = fs.onError;
+			}
+			fs.fileSystem.root.getFile(filename, {}, function(fileEntry) {
 
-                    reader.onloadend = function(e) {
-                        callback(this.result);
-                    };
+				fileEntry.file(function(file) {
 
-                    reader.readAsText(file);
+					var reader = new FileReader();
+					reader.onloadend = function(e) {
+						onSuccess(this.result);
+					};
+					reader.readAsText(file);
 
-                });
+				}, onError);
 
-            });
-        },
+			}, onError);
+		},
 
-        doSave : function(filename, data, callback) {
-            fs.fileSystem.root.getFile(filename, {
-                create : true
-            }, function(fileEntry) {
-                fileEntry.createWriter(function(fileWriter) {
+		doSave : function(filename, data, onSuccess, onError) {
+			if (!onError) {
+				onError = fs.onError;
+			}
+			fs.fileSystem.root.getFile(filename, {
+				create : true
+			}, function(fileEntry) {
+				fileEntry.createWriter(function(fileWriter) {
 
-                    fileWriter.onwriteend = function(e) {
-                        callback();
-                    };
+					fileWriter.onwriteend = function(e) {
+						onSuccess();
+					};
 
-                    fileWriter.onerror = function(e) {
-                        console.log('Write failed: ' + e.toString());
-                    };
+					fileWriter.onerror = function(e) {
+						onError(e);
+					};
 
-                    var blob = new Blob([ data ], {
-                        type : 'text/plain'
-                    });
+					var blob = new Blob([ data ], {
+						type : 'text/plain'
+					});
 
-                    fileWriter.write(blob);
+					fileWriter.write(blob);
 
-                });
-            });
-        },
+				}, onError);
+			}, onError);
+		},
 
-        onInit : function(fileSys) {
+		onError : function(e) {
+			var msg = '';
 
-            fileSys.root.getFile("balduin", {
-                create : true
-            }, function(fileEntry) {
+			switch (e.code) {
+			case FileError.QUOTA_EXCEEDED_ERR:
+				msg = 'QUOTA_EXCEEDED_ERR';
+				break;
+			case FileError.NOT_FOUND_ERR:
+				msg = 'NOT_FOUND_ERR';
+				break;
+			case FileError.SECURITY_ERR:
+				msg = 'SECURITY_ERR';
+				break;
+			case FileError.INVALID_MODIFICATION_ERR:
+				msg = 'INVALID_MODIFICATION_ERR';
+				break;
+			case FileError.INVALID_STATE_ERR:
+				msg = 'INVALID_STATE_ERR';
+				break;
+			default:
+				msg = 'Unknown Error';
+				break;
+			}
+			console.log('Error: ' + msg);
+		}
+	};
 
-                fileEntry.createWriter(function(fileWriter) {
-
-                    fileWriter.onwriteend = function(e) {
-                        console.log('Write completed.');
-                    };
-
-                    fileWriter.onerror = function(e) {
-                        console.log('Write failed: ' + e.toString());
-                    };
-
-                    var blob = new Blob([ 'bladuin' ], {
-                        type : 'text/plain'
-                    });
-
-                    fileWriter.write(blob);
-
-                });
-            });
-        },
-
-        onError : function() {
-            alert("error");
-        }
-    };
-
-    return fs;
+	return fs;
 
 });

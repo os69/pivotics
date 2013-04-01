@@ -167,6 +167,11 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 			var self = this;
 			self.pathPrefix = "../data/";
 			self.filename = properties.name;
+			if(!properties.onError){
+				properties.onError = function(e){
+					alert(e);
+				};
+			}
 			if (properties.data) {
 				self.dimensions = properties.dimensions;
 				self.data = properties.data;
@@ -177,12 +182,19 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 					link : 'http://www.google.com'
 				};
 				self.createIndex();
+				if(properties.onSuccess){
+					properties.onSuccess();
+				}
 			} else {
 				self.dimensions = [];
 				self.data = null;
 				self.header = null;
-				self.load();
-				self.createIndex();
+				self.load(function(){
+					self.createIndex();
+					if(properties.onSuccess){
+						properties.onSuccess();
+					}					
+				},properties.onError);
 			}
 		},
 
@@ -254,17 +266,29 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 			return result;
 		},
 
-		load : function() {
+		load : function(onSuccess,onError) {
 			var self = this;
-			var response = $.ajax({
+			$.ajax({
 				type : "GET",
 				url : self.pathPrefix + self.filename + ".json",
-				async : false
+				async : true,
+				success : function(data){
+					self.loaded(data);
+					if(onSuccess){
+						onSuccess(self);	
+					}
+				},
+				error : function(e){
+					if(onError){
+						onError(e);
+					}
+				}
 			});
-			if (response.status != 200) {
-				throw response;
-			}
-			var responseJson = JSON.parse(response.responseText);
+		},
+
+		loaded : function(data){
+			var self = this;
+			var responseJson = JSON.parse(data);
 			self.data = responseJson.data;
 			self.header = responseJson.header;
 			if (responseJson.dimensions) {
@@ -273,10 +297,9 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 				});
 			} else {
 				self.dimensions = self.generateDimensions(self.data);
-			}
-			return true;
+			}	
 		},
-
+		
 		generateDimensions : function(data) {
 			if (data.length === 0) {
 				return [];
@@ -408,7 +431,7 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 			}
 		},
 
-		save : function(callback) {
+		save : function(onSuccess,onError) {
 
 			// assemble saveData from self.data
 			var self = this;
@@ -443,12 +466,12 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 				dataType : 'json'
 			}).error(function(error) {
 				self.header.version--; // undo version increment
-				if (callback) {
-					callback(false,error);
+				if (onError) {
+					onError(error);
 				}
 			}).success(function() {
-				if (callback) {
-					callback(true);
+				if (onSuccess) {
+					onSuccess();
 				}
 			});
 
