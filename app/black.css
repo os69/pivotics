@@ -235,3 +235,8 @@ td.tableoptionsui_leaf {
 	border-style: solid;
 	border-width:1px;
 }
+
+span.nvtitle{
+	color:#FFCC01;
+	font-weight: bold;
+}

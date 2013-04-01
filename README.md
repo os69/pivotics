@@ -1,7 +1,3 @@
-<!--
-http://os69.github.com/pivotics
-rechtschreibkorrektur
--->
 
 # TOC
 

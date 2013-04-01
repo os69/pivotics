@@ -213,7 +213,7 @@ define([], function() {
 
 		// append title
 		var appendTitle = function(parentNode, field) {
-			parentNode.append("<td colspan=2><b>" + field.title + "</b></td>");
+			parentNode.append("<td colspan=2><span class='nvtitle'>" + field.title + "</span></td>");
 		};
 
 		// append input field

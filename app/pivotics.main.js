@@ -77,7 +77,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
                 database.subtitle($("#dbsubtitle").val());
                 database.link($("#dblink").val());
                 main.setHeader(database.title(), database.subtitle(), database.link());
-                $("#tabs").tabs('select', 2);
+                alert("ok");
             }
         });
     };

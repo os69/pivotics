@@ -547,7 +547,12 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
 
         addRecords : function(records) {
             this.mainDatabase.addRecords(records);
-        }
+        },
+        
+        removeRecords : function(records) {
+            this.mainDatabase.removeRecords(records);
+        },
+
 
     });
 
