@@ -316,5 +316,20 @@ define([], function() {
 	    $("head").append( link );		
 	};
 
+	// =========================================================================
+	// check for chrome app
+	// =========================================================================
+	core.isChromeApp = function(){
+		if(typeof chrome === "undefined"){
+			return false;
+		}
+		var manifest = chrome.runtime.getManifest();
+		if(core.startsWith(manifest.name,"Pivotics")){
+			return true;
+		}else{
+			return false;
+		}
+	};
+	
 	return core;
 });

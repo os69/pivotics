@@ -1,405 +1,426 @@
-define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensionui", "pivotics.tableoptionsui", "pivotics.tableui", "pivotics.htmlloader","pivotics.cellrenderer" ], function(core,
-		analytics, db, dimensionui, tableoptionsui, tableui, htmlloader, cellrenderer) {
+define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensionui", "pivotics.tableoptionsui", "pivotics.tableui", "pivotics.htmlloader",
+        "pivotics.cellrenderer", "pivotics.fs", "pivotics.htmlloader" ], function(core, analytics, db, dimensionui, tableoptionsui, tableui, htmlloader, cellrenderer, fs, loader) {
 
-	var main = {};
+    var main = {};
 
-	var database = null;
+    var database = null;
 
-	// =========================================================================
-	// create dimensions
-	// =========================================================================
-	var createDimensions = function(data) {
-		var dimensions = [];
-		for (name in data) {
-			var dimension = analytics.dimension({
-				name : name,
-				key : true
-			});
-			dimensions.push(dimension);
-		}
-		return dimensions;
-	};
+    // =========================================================================
+    // create dimensions
+    // =========================================================================
+    var createDimensions = function(data) {
+        var dimensions = [];
+        for (name in data) {
+            var dimension = analytics.dimension({
+                name : name,
+                key : true
+            });
+            dimensions.push(dimension);
+        }
+        return dimensions;
+    };
 
-	// =========================================================================
-	// init import
-	// =========================================================================
-	main.initImport = function() {
+    // =========================================================================
+    // init import tab
+    // =========================================================================
+    main.initImport = function() {
 
-		$("#importButton").click(function() {
+        $("#importButton").click(function() {
 
-			var file = $("#importInput")[0].files[0];
+            var file = $("#importInput")[0].files[0];
 
-			core.readFile(file, $("#importStatus"), function(file, evt) {
+            core.readFile(file, $("#importStatus"), function(file, evt) {
 
-				// convert csv to objects
-				var dataRaw = evt.target.result;
-				var data = $.csv.toObjects(dataRaw);
-				if (data.length === 0) {
-					alert("No data!");
-					return;
-				}
+                // convert csv to objects
+                var dataRaw = evt.target.result;
+                var data = $.csv.toObjects(dataRaw);
+                if (data.length === 0) {
+                    alert("No data!");
+                    return;
+                }
 
-				// create dimensions
-				var dimensions = createDimensions(data[0]);
+                // create dimensions
+                var dimensions = createDimensions(data[0]);
 
-				// create database
-				database = db.database({
-					data : data,
-					dimensions : dimensions,
-					name : $("#databaseInput").val()
-				});
+                // create database
+                database = db.database({
+                    data : data,
+                    dimensions : dimensions,
+                    name : $("#databaseInput").val(),
+                    onSuccess : function(database) {
+                        $("#importStatus").text(database.data.length + " records imported");
+                    }
+                });
 
-				$("#importStatus").text(database.data.length + " records imported");
-			});
+            });
 
-		});
+        });
 
-	};
+    };
 
-	// =========================================================================
-	// init configure
-	// =========================================================================
-	main.initConfigure = function() {
-		$("#dimensionui").empty();
-		if(!database){
-			return;
-		}
-		$("#dbtitle").val(database.title());
-		$("#dbsubtitle").val(database.subtitle());
-		$("#dblink").val(database.link());
-		dimensionui.DimensionTable({
-			parentNode : $("#dimensionui"),
-			database : database,
-			onApply : function() {
-				database.title($("#dbtitle").val());
-				database.subtitle($("#dbsubtitle").val());
-				database.link($("#dblink").val());
-				main.setHeader(database.title(), database.subtitle(), database.link());
-				$("#tabs").tabs('select', 2);
-			}
-		});
-	};
+    // =========================================================================
+    // init configure tab
+    // =========================================================================
+    main.initConfigure = function() {
+        $("#dimensionui").empty();
+        if (!database) {
+            return;
+        }
+        $("#dbtitle").val(database.title());
+        $("#dbsubtitle").val(database.subtitle());
+        $("#dblink").val(database.link());
+        dimensionui.DimensionTable({
+            parentNode : $("#dimensionui"),
+            database : database,
+            onApply : function() {
+                database.title($("#dbtitle").val());
+                database.subtitle($("#dbsubtitle").val());
+                database.link($("#dblink").val());
+                main.setHeader(database.title(), database.subtitle(), database.link());
+                $("#tabs").tabs('select', 2);
+            }
+        });
+    };
 
-	// =========================================================================
-	// init analyze
-	// =========================================================================
-	main.initAnalyze = function(){
-		if(!database){
-			return;
-		}
-		main.analyzer();
-	};
+    // =========================================================================
+    // init analyze tab 
+    // =========================================================================
+    main.initAnalyze = function() {
+        if (!database) {
+            return;
+        }
+        main.analyzer();
+    };
 
-	// =========================================================================
-	// init export
-	// =========================================================================
-	main.initExport = function() {
-		if(!database){
-			return;
-		}
-		var csv = database.exportCsv();
-		var URL = window.URL || window.webkitURL;
-		var blob = new Blob([csv], {'type':'text\/plain'});
-		document.location = URL.createObjectURL(blob);
-	};
-	
+    // =========================================================================
+    // init export tab
+    // =========================================================================
+    main.initExport = function() {
+        if (!database) {
+            return;
+        }
+        var csv = database.exportCsv();
+        var URL = window.URL || window.webkitURL;
+        var blob = new Blob([ csv ], {
+            'type' : 'text\/plain'
+        });
+        document.location = URL.createObjectURL(blob);
+    };
 
-	// =========================================================================
-	// analyzer
-	// =========================================================================
-	main.analyzer = core.createClass({
+    // =========================================================================
+    // analyzer
+    // =========================================================================
+    main.analyzer = core.createClass({
 
-		init : function() {
+        init : function() {
 
-			// fields
-			var self = this;
-			self.measureDimension = analytics.measureDimension([]);
-			self.rowDimensions = [];
-			self.colDimensions = [];
-			
-			self.measureDimension2 = analytics.measureDimension([]);
-			self.rowDimensions2 = [];
-			self.colDimensions2 = [];
+            // fields
+            var self = this;
+            self.measureDimension = analytics.measureDimension([]);
+            self.rowDimensions = [];
+            self.colDimensions = [];
 
-			self.filterCondition = true;
-			self.sumFields = 0;
-			self.pivotInPivot = false;
+            self.measureDimension2 = analytics.measureDimension([]);
+            self.rowDimensions2 = [];
+            self.colDimensions2 = [];
 
-			var allDimensions = database.dimensions.slice();
-			allDimensions.push(self.measureDimension);
-			self.dimensionsMap = self.createDimensionsMap(allDimensions);
+            self.filterCondition = true;
+            self.sumFields = 0;
+            self.pivotInPivot = false;
 
-			allDimensions = database.dimensions.slice();
-			allDimensions.push(self.measureDimension2);
-			self.dimensionsMap2 = self.createDimensionsMap(allDimensions);
+            var allDimensions = database.dimensions.slice();
+            allDimensions.push(self.measureDimension);
+            self.dimensionsMap = self.createDimensionsMap(allDimensions);
 
-			// by default all data is valid
-			database.filter(function() {
-				return true;
-			});
+            allDimensions = database.dimensions.slice();
+            allDimensions.push(self.measureDimension2);
+            self.dimensionsMap2 = self.createDimensionsMap(allDimensions);
 
-			// deserialize url
-			self.deserializeFromUrl();
+            // by default all data is valid
+            database.filter(function() {
+                return true;
+            });
 
-			// toggle for complete options dialog
-			$("#tableoptions_toggle").click(function() {
-				$("#tableoptions").slideToggle();
-			});
+            // deserialize url
+            self.deserializeFromUrl();
 
-			// create table option dialog
-			$("#tableoptions1").empty();
-			self.tabledialog = tableoptionsui.Dialog({
-				parentNode : $("#tableoptions1"),
-				dimensions : database.dimensions,
-				measureDimension : self.measureDimension,
-				rowDimensions : self.rowDimensions,
-				colDimensions : self.colDimensions,
-				applyButtonActive : false
-			});
+            // toggle for complete options dialog
+            $("#tableoptions_toggle").click(function() {
+                $("#tableoptions").slideToggle();
+            });
 
-			// filter area
-			$("#filterarea").val(self.filterCondition);
+            // create table option dialog
+            $("#tableoptions1").empty();
+            self.tabledialog = tableoptionsui.Dialog({
+                parentNode : $("#tableoptions1"),
+                dimensions : database.dimensions,
+                measureDimension : self.measureDimension,
+                rowDimensions : self.rowDimensions,
+                colDimensions : self.colDimensions,
+                applyButtonActive : false
+            });
 
-			// number sum fields
-			$("#sumfields").val(self.sumFields);
+            // filter area
+            $("#filterarea").val(self.filterCondition);
 
-			// pivot in pivot checkbox
-			$("#pinp").attr('checked',self.pivotInPivot);
-			if(!self.pivotInPivot){
-				$("#tableoptions2").hide();
-			}
-			$("#pinp").click(function(){
-				self.pivotInPivot = $("#pinp").is(":checked");
-				$("#tableoptions2").slideToggle();
-			});
-			
-			// table option dialog for sub pivot table
-			$("#tableoptions2").empty();
-			self.tabledialog2 = tableoptionsui.Dialog({
-				parentNode : $("#tableoptions2"),
-				dimensions : database.dimensions,
-				measureDimension : self.measureDimension2,
-				rowDimensions : self.rowDimensions2,
-				colDimensions : self.colDimensions2,
-				applyButtonActive : false
-			});
-			
-			// callback for apply button
-			$("#tableoptions_button").click(function() {
-				self.apply();
-			});
+            // number sum fields
+            $("#sumfields").val(self.sumFields);
 
-			// auto apply
-			self.apply();
-		},
+            // pivot in pivot checkbox
+            $("#pinp").attr('checked', self.pivotInPivot);
+            if (!self.pivotInPivot) {
+                $("#tableoptions2").hide();
+            }
+            $("#pinp").click(function() {
+                self.pivotInPivot = $("#pinp").is(":checked");
+                $("#tableoptions2").slideToggle();
+            });
 
-		setSumExtendFunctions : function() {
-			var self = this;
-			for ( var i = 0; i < database.dimensions.length; ++i) {
-				database.dimensions[i].extend = null;
-			}
-			if (self.sumFields > 0) {
-				self.rowDimensions[0].extend = analytics.sumExtend(self.sumFields, self.rowDimensions.length);
-			}
-		},
+            // table option dialog for sub pivot table
+            $("#tableoptions2").empty();
+            self.tabledialog2 = tableoptionsui.Dialog({
+                parentNode : $("#tableoptions2"),
+                dimensions : database.dimensions,
+                measureDimension : self.measureDimension2,
+                rowDimensions : self.rowDimensions2,
+                colDimensions : self.colDimensions2,
+                applyButtonActive : false
+            });
 
-		createDimensionsMap : function(dimensions) {
-			var map = {};
-			for ( var i = 0; i < dimensions.length; ++i) {
-				var dimension = dimensions[i];
-				map[dimension.name] = dimension;
-			}
-			return map;
-		},
+            // callback for apply button
+            $("#tableoptions_button").click(function() {
+                self.apply();
+            });
 
-		apply : function() {
+            // auto apply
+            self.apply();
+        },
 
-			// apply filter
-			var filterCondition = this.filterCondition = $("#filterarea").val();
-			var evalFunction = function() {
-				return eval(filterCondition);
-			};
-			database.filter(evalFunction);
+        setSumExtendFunctions : function() {
+            var self = this;
+            for ( var i = 0; i < database.dimensions.length; ++i) {
+                database.dimensions[i].extend = null;
+            }
+            if (self.sumFields > 0) {
+                self.rowDimensions[0].extend = analytics.sumExtend(self.sumFields, self.rowDimensions.length);
+            }
+        },
 
-			// apply for table options dialog
-			this.tabledialog.apply();
-			this.tabledialog2.apply();
-			
-			// sum fields
-			this.sumFields = parseInt($("#sumfields").val());
-			this.setSumExtendFunctions();
-			
-			// close complete options dialog
-			//$("#tableoptions").slideToggle();
+        createDimensionsMap : function(dimensions) {
+            var map = {};
+            for ( var i = 0; i < dimensions.length; ++i) {
+                var dimension = dimensions[i];
+                map[dimension.name] = dimension;
+            }
+            return map;
+        },
 
-			// serialize
-			this.serializeToUrl();
+        apply : function() {
 
-			// create result set
-			var self = this;
-			var resultSet = analytics.resultSet([ self.rowDimensions, self.colDimensions ], database);
-			
-			// draw result set
-			$("#pivot").empty();
-			if(self.pivotInPivot){
-				var renderer = cellrenderer.pivotRenderer(self.rowDimensions2,self.colDimensions2,database);
-				tableui.Table({
-					resultSet : resultSet,
-					cellRenderer : renderer
-				}).render($("#pivot"));
-			}else{
-				tableui.Table({
-					resultSet : resultSet
-				}).render($("#pivot"));				
-			}
-			
-		},
+            // apply filter
+            var filterCondition = this.filterCondition = $("#filterarea").val();
+            var evalFunction = function() {
+                return eval(filterCondition);
+            };
+            database.filter(evalFunction);
 
-		serializeDimensions : function(dimensions){
-			var result = []
-			for ( var i = 0; i < dimensions.length; ++i) {
-				var dimension = dimensions[i];
-				result.push(dimension.name);
-			}			
-			return result;
-		},
-		
-		serializeToUrl : function() {
-			var url = core.url();
-			url.parameterJSON('rows',this.serializeDimensions(this.rowDimensions));
-			url.parameterJSON('cols',this.serializeDimensions(this.colDimensions));
-			url.parameterJSON('measures',this.serializeDimensions(this.measureDimension.measures));
-			url.parameterJSON('rows2',this.serializeDimensions(this.rowDimensions2));
-			url.parameterJSON('cols2',this.serializeDimensions(this.colDimensions2));
-			url.parameterJSON('measures2',this.serializeDimensions(this.measureDimension2.measures));
-			url.parameter('sum',this.sumFields);
-			url.parameter('filter', this.filterCondition);
-			url.parameter('pinp',this.pivotInPivot);
-			url.submit();
-		},
+            // apply for table options dialog
+            this.tabledialog.apply();
+            this.tabledialog2.apply();
 
-		deserializeDimensions : function(dimensionsMap,dimensionNames){
-			var result = [];
-			if(!dimensionNames){
-				return result;
-			}
-			for ( var i = 0; i < dimensionNames.length; ++i) {
-				var name = dimensionNames[i];
-				var dimension = dimensionsMap[name];
-				if (dimension) {
-					result.push(dimension);
-				}
-			}
-			return result;
-		},
-		
-		deserializeFromUrl : function() {
+            // sum fields
+            this.sumFields = parseInt($("#sumfields").val());
+            this.setSumExtendFunctions();
 
-			var url = core.url();
+            // close complete options dialog
+            // $("#tableoptions").slideToggle();
 
-			this.colDimensions.length=0;
-			core.append(this.colDimensions,this.deserializeDimensions(this.dimensionsMap,url.parameterJSON('cols')));
-	
-			this.rowDimensions.length=0;
-			core.append(this.rowDimensions,this.deserializeDimensions(this.dimensionsMap,url.parameterJSON('rows')));
-		
-			this.measureDimension.init(this.deserializeDimensions(this.dimensionsMap,url.parameterJSON('measures')));
+            // serialize
+            this.serializeToUrl();
 
-			this.colDimensions2.length=0;
-			core.append(this.colDimensions2,this.deserializeDimensions(this.dimensionsMap2,url.parameterJSON('cols2')));
-	
-			this.rowDimensions2.length=0;
-			core.append(this.rowDimensions2,this.deserializeDimensions(this.dimensionsMap2,url.parameterJSON('rows2')));
-		
-			this.measureDimension2.init(this.deserializeDimensions(this.dimensionsMap2,url.parameterJSON('measures2')));
-			
-			var sum = url.parameter('sum');
-			if(sum){
-				this.sumFields = parseInt(sum);
-			}
+            // create result set
+            var self = this;
+            var resultSet = analytics.resultSet([ self.rowDimensions, self.colDimensions ], database);
 
-			var filter = url.parameter('filter');
-			if (filter) {
-				this.filterCondition = filter;
-			}
+            // draw result set
+            $("#pivot").empty();
+            if (self.pivotInPivot) {
+                var renderer = cellrenderer.pivotRenderer(self.rowDimensions2, self.colDimensions2, database);
+                tableui.Table({
+                    resultSet : resultSet,
+                    cellRenderer : renderer
+                }).render($("#pivot"));
+            } else {
+                tableui.Table({
+                    resultSet : resultSet
+                }).render($("#pivot"));
+            }
 
-			var pinp = url.parameter('pinp');			
-			if(pinp==='true'){
-				this.pivotInPivot=true;
-			}else{
-				this.pivotInPivot=false;
-			}
+        },
 
-		}
+        serializeDimensions : function(dimensions) {
+            var result = []
+            for ( var i = 0; i < dimensions.length; ++i) {
+                var dimension = dimensions[i];
+                result.push(dimension.name);
+            }
+            return result;
+        },
 
-	});
+        serializeToUrl : function() {
+            var url = core.url();
+            url.parameterJSON('rows', this.serializeDimensions(this.rowDimensions));
+            url.parameterJSON('cols', this.serializeDimensions(this.colDimensions));
+            url.parameterJSON('measures', this.serializeDimensions(this.measureDimension.measures));
+            url.parameterJSON('rows2', this.serializeDimensions(this.rowDimensions2));
+            url.parameterJSON('cols2', this.serializeDimensions(this.colDimensions2));
+            url.parameterJSON('measures2', this.serializeDimensions(this.measureDimension2.measures));
+            url.parameter('sum', this.sumFields);
+            url.parameter('filter', this.filterCondition);
+            url.parameter('pinp', this.pivotInPivot);
+            url.submit();
+        },
 
-	// =========================================================================
-	// set header
-	// =========================================================================
-	main.setHeader = function(title,subtitle,link){
-		$("#header_dbtitle").text(title);
-		$("#header_dbsubtitle").text(subtitle);
-		$("#header_dbsubtitle").attr("href",link);
-	};
+        deserializeDimensions : function(dimensionsMap, dimensionNames) {
+            var result = [];
+            if (!dimensionNames) {
+                return result;
+            }
+            for ( var i = 0; i < dimensionNames.length; ++i) {
+                var name = dimensionNames[i];
+                var dimension = dimensionsMap[name];
+                if (dimension) {
+                    result.push(dimension);
+                }
+            }
+            return result;
+        },
 
-	// =========================================================================
-	// start
-	// =========================================================================
-	main.start = function() {
+        deserializeFromUrl : function() {
 
-		var styleSheet = core.url().parameter('css');
-		if(!styleSheet){
-			styleSheet = 'black.css';
-		}
-		core.loadStyleSheet(styleSheet);
-		
-		$("#saveButton").click(function() {
-			var databaseName = $("#databaseInput").val();
-			core.url().parameter('db', databaseName).submit();
-			database.name(databaseName);
-			database.save(function(ok,error) {
-				if (ok) {
-					alert("ok");
-				} else {
-					alert("error when saving:"+error.statusText);
-				}
-			});
-		});
-		$("#loadButton").click(function() {
-			var databaseName = $("#databaseInput").val();
-			core.url().parameter('db', databaseName).submit();
-			try {
-				database = db.database({
-					name : databaseName
-				});
-				main.setHeader(database.title(), database.subtitle(), database.link());
-				alert(database.data.length + " records loaded");
-			} catch (e) {
-				alert(e.statusText);
-			}
+            var url = core.url();
 
-		});
+            this.colDimensions.length = 0;
+            core.append(this.colDimensions, this.deserializeDimensions(this.dimensionsMap, url.parameterJSON('cols')));
 
-		var databaseName = core.url().parameter('db');
-		if (databaseName) {
-			$("#databaseInput").val(databaseName);
-			try {
-				database = db.database({
-					name : databaseName
-				});
-				main.setHeader(database.title(), database.subtitle(), database.link());
-				htmlloader.load('#main', 'analyze.html');
-			} catch (e) {
-				alert(e.statusText);
-				htmlloader.load('#main', 'import.html');
-			}
-		} else {
-			htmlloader.load('#main', 'import.html');
-		}
+            this.rowDimensions.length = 0;
+            core.append(this.rowDimensions, this.deserializeDimensions(this.dimensionsMap, url.parameterJSON('rows')));
 
-	};
-	
-	return main;
+            this.measureDimension.init(this.deserializeDimensions(this.dimensionsMap, url.parameterJSON('measures')));
+
+            this.colDimensions2.length = 0;
+            core.append(this.colDimensions2, this.deserializeDimensions(this.dimensionsMap2, url.parameterJSON('cols2')));
+
+            this.rowDimensions2.length = 0;
+            core.append(this.rowDimensions2, this.deserializeDimensions(this.dimensionsMap2, url.parameterJSON('rows2')));
+
+            this.measureDimension2.init(this.deserializeDimensions(this.dimensionsMap2, url.parameterJSON('measures2')));
+
+            var sum = url.parameter('sum');
+            if (sum) {
+                this.sumFields = parseInt(sum);
+            }
+
+            var filter = url.parameter('filter');
+            if (filter) {
+                this.filterCondition = filter;
+            }
+
+            var pinp = url.parameter('pinp');
+            if (pinp === 'true') {
+                this.pivotInPivot = true;
+            } else {
+                this.pivotInPivot = false;
+            }
+
+        }
+
+    });
+
+    // =========================================================================
+    // set header
+    // =========================================================================
+    main.setHeader = function(title, subtitle, link) {
+        $("#header_dbtitle").text(title);
+        $("#header_dbsubtitle").text(subtitle);
+        $("#header_dbsubtitle").attr("href", link);
+    };
+
+    // =========================================================================
+    // start
+    // =========================================================================
+    main.start = function() {
+
+        $("#n_import").click(function() {
+            loader.load("#main", "import.html");
+        });
+        $("#n_configure").click(function() {
+            loader.load("#main", "configure.html");
+        });
+        $("#n_analyze").click(function() {
+            loader.load("#main", "analyze.html");
+        });
+        $("#n_export").click(function() {
+            loader.load("#main", "export.html");
+        });
+
+        var styleSheet = core.url().parameter('css');
+        if (!styleSheet) {
+            styleSheet = 'black.css';
+        }
+        core.loadStyleSheet(styleSheet);
+
+        $("#saveButton").click(function() {
+            var databaseName = $("#databaseInput").val();
+            core.url().parameter('db', databaseName).submit();
+            database.name(databaseName);
+            database.save(function() {
+                alert("ok");
+            }, function(error) {
+                alert("error when saving:" + error.statusText);
+            });
+        });
+
+        $("#loadButton").click(function() {
+            var databaseName = $("#databaseInput").val();
+            core.url().parameter('db', databaseName).submit();
+            database = db.database({
+                name : databaseName,
+                onSuccess : function(database) {
+                    main.setHeader(database.title(), database.subtitle(), database.link());
+                    alert(database.data.length + " records loaded");
+                },
+                onError : function(e) {
+                    alert(e.statusText);
+                }
+            });
+
+        });
+
+        var databaseName = core.url().parameter('db');
+        if (databaseName) {
+            $("#databaseInput").val(databaseName);
+            database = db.database({
+                name : databaseName,
+                onSuccess : function(database) {
+                    main.setHeader(database.title(), database.subtitle(), database.link());
+                    htmlloader.load('#main', 'analyze.html');
+                },
+                onError : function(e) {
+                    alert(e.statusText);
+                }
+            });
+        } else {
+            htmlloader.load('#main', 'import.html');
+        }
+
+    };
+
+    // =========================================================================
+    // start application
+    // =========================================================================
+    main.start();
+
+    return main;
 
 });

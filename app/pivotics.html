@@ -9,7 +9,7 @@
 <script src="../lib/jquery.jeditable.js" type="text/javascript"></script>
 <script src="../lib/jquery.contextMenu.js" type="text/javascript"></script>
 <script src="../lib/jquery.csv-0.71.min.js" type="text/javascript"></script>
-<script data-main="pivotics.main.js" src="../lib//require.js"></script>
+
 
 
 <LINK href="../lib/jquery.contextMenu.css" rel="stylesheet"
@@ -26,23 +26,21 @@
 <body>
 
 	<div class="title">
-		<span id="header_dbtitle" >Pivotics #5</span> <span  class="subtitle"><a target="_blank"
-			href="http://www.youtube.com/watch?v=bMN6CuB6R1c" id="header_dbsubtitle">Pivot Table
-				Analyzer</a></span> <span class="subtitle_right">Version 0.5</span>
+		<span id="header_dbtitle">Pivotics #5</span> <span class="subtitle"><a
+			target="_blank" href="http://www.youtube.com/watch?v=bMN6CuB6R1c"
+			id="header_dbsubtitle">Pivot Table Analyzer</a></span> <span
+			class="subtitle_right">Version 0.5</span>
 	</div>
 
 
-
-
 	<div class="navigation" align="left">
-		<a href="javascript:loader.load('#main','import.html')">IMPORT</a>
-		&nbsp; &nbsp; <a
-			href="javascript:loader.load('#main','configure.html')">CONFIGURE</a>
-		&nbsp; &nbsp; <a href="javascript:loader.load('#main','analyze.html')">ANALYZE</a>
-		&nbsp; &nbsp; <a href="javascript:loader.load('#main','export.html')">EXPORT</a>
-
-		<span class="loadsavetoolbar"> Database: <input type="text"
-			id="databaseInput">
+		<a id="n_import">IMPORT</a> &nbsp; &nbsp; 
+		<a id="n_configure">CONFIGURE</a>
+		&nbsp; &nbsp; <a id="n_analyze">ANALYZE</a> &nbsp; &nbsp; 
+		<a id="n_export">EXPORT</a> &nbsp; &nbsp;
+		<a id="n_help" href="http://os69.github.com/pivotics/">HELP</a>
+		 <span class="loadsavetoolbar">
+			Database: <input type="text" id="databaseInput">
 			<button id="loadButton" class="button">Load</button>
 			<button id="saveButton" class="button">Save</button>
 		</span>
@@ -53,14 +51,7 @@
 
 	<div id="main"></div>
 
-	<script>
-        	require(["pivotics.main","pivotics.htmlloader"],function(main,loader){
-        		window.loader = loader;
-        		main.start();
-        	});
-    </script>
-
-
+	<script data-main="pivotics.main.js" src="../lib//require.js"></script>
 
 </body>
 </html>
