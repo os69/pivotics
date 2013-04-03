@@ -34,11 +34,14 @@
 
     <div class="container">
       <section id="main_content">
+
         
+<!-- BEGIN DOC -->
 <h1>TOC</h1>
 
 <ul>
 <li><a href="#introduction">Introduction</a></li>
+<li><a href="#techcnology">Technology</a></li>
 <li><a href="#history">History</a></li>
 <li><a href="#browsersupport">Browser Support</a></li>
 <li><a href="#installation">Installation</a></li>
@@ -49,39 +52,37 @@
 <li><a href="#export">Export to CSV</a></li>
 <li><a href="#css">CSS</a></li>
 <li><a href="#comments">Comments</a></li>
-</ul><p><a name="introduction"></a></p>
+</ul>
+
+<p><a name="introduction"></a></p>
 
 <h1>Introduction</h1>
 
-<p><em>Pivotics</em> is a HTML5 based <a href="http://en.wikipedia.org/wiki/Pivot_table">pivot table</a> editor. It allows you to</p>
+<p><em>Pivotics</em> is a HTML5 based <a href="http://en.wikipedia.org/wiki/Pivot_table">pivot table</a> editor. <em>Pivotics</em> is free and open source. It allows you to</p>
 
 <ul>
 <li>Import CSV data</li>
 <li>Configure the imported data, especially
-
 <ul>
 <li>Configure the data types of the imported columns</li>
 <li>Set an aggregation function</li>
 <li>Define key fields</li>
-</ul>
-</li>
-<li>Analyze the imported data by defining table views.
-
+</ul></li>
+<li>Analyze the imported data by defining table views (similar but not identical to spreadsheets).
 <ul>
 <li>Define table views by distributing fields on rows and columns</li>
 <li>Aggregate (for instance sum) columns</li>
 <li>Edit the data</li>
 <li>Create new table lines</li>
 <li>Use icons in columns</li>
-<li>Filter data<br>
-</li>
-</ul>
-</li>
+<li>Filter data          </li>
+</ul></li>
 <li>Export to CSV</li>
-<li>
-<em>Pivotics</em> includes a simple python based webserver which you can use in your local network for loading and storing data. Optionally you can use also your own webserver. </li>
+<li><em>Pivotics</em> includes a simple python based webserver which you can use in your local network for loading and storing data. Optionally you can use also your own webserver. </li>
 <li>The state of the <em>Pivotics</em> UI is stored in the URL so you can easly send links to other people.</li>
-</ul><p><em>Pivotics</em> also has some drawbacks you should now:</p>
+</ul>
+
+<p><em>Pivotics</em> also has some drawbacks you should now:</p>
 
 <ul>
 <li>It is not designed for a huge amount of data. I tested it with up to 500 records and about 10 attributes per record.
@@ -89,9 +90,17 @@
 Whenever you change a table cell or create a new record there is a full table rendering roundtrip. Actually for my 500 records database
 I oberserve no lag of time but for larger datasets this will happen.</li>
 <li>Im am a technician an actually hate to develop UIs. So regarding usability <em>Pivotics</em> may be suboptimal.</li>
-</ul><p><a href="http://en.wikipedia.org/wiki/Pivot_table">Pivot tables</a> are a great and well known concept in <a href="http://en.wikipedia.org/wiki/Online_analytical_processing">OLAP</a>.</p>
+</ul>
+
+<p><a href="http://en.wikipedia.org/wiki/Pivot_table">Pivot tables</a> are a great and well known concept in <a href="http://en.wikipedia.org/wiki/Online_analytical_processing">OLAP</a>.</p>
 
 <p>Also if you don't like <em>Pivotics</em> I encourage you to test the pivot table implementation in <a href="http://office.microsoft.com/en-us/excel-help/pivottable-reports-101-HA001034632.aspx">Microsoft Excel</a> or in <a href="http://openoffice.blogs.com/openoffice/2006/11/data_pilots_in_.html">Open Office</a>.</p>
+
+<p><a name="technology"></a></p>
+
+<h1>Technology</h1>
+
+<p><em>Pivotics</em> is a HTML5 browser application. It is implemented using Javascript, CSS and HTML.</p>
 
 <p><a name="history"></a></p>
 
@@ -112,10 +121,12 @@ Sometimes you want to support multiple technologies or platforms which adds anot
 schema.</li>
 <li>Developers hate administration task. In the scrum tools offered by my company it took severaly mouse clicks to confirm a task.
 So developers tend to boycott the tools.</li>
-</ul><p>In order to overcome these problems I developed <em>Pivotics</em> a HTLM5 based tool for configuring and editing pivot tables.
+</ul>
+
+<p>In order to overcome these problems I developed <em>Pivotics</em> a HTLM5 based tool for configuring and editing pivot tables.
 In fact this is not a pure scrum tool instead it allows you to create and edit arbitrary column based data (like a database table) and
 to define own table views on this data.
-Whether you use the tools for scrum planning, organizing your private TODO, or maintain the shopping list of your girlfriend is up to you.</p>
+Whether you use the tool for scrum planning, organizing your private TODO, or maintain the shopping list of your girlfriend is up to you.</p>
 
 <p><a name="browsersupport"></a></p>
 
@@ -151,13 +162,17 @@ This server is highly insecure an could expose your complete filesystem to the p
 web server. This should work for all GET requests. <em>Pivotics</em> uses a POST request to store data on the server. Probably you need
 to enable  POST requests in your webserver configuration.</p>
 
+<h2>Chrome App</h2>
+
+<p><em>Pivotics</em> is available in the <a href="https://chrome.google.com/webstore/search/pivotics">Chrome Web Store</a></p>
+
 <p><a name="import"></a></p>
 
 <h1>Import</h1>
 
 <p>In the <em>Pivotics</em> toolbar choose IMPORT. Select a CSV file. You can find an example file in  </p>
 
-<pre><code>pivotics/data/test1.csv. 
+<pre><code>pivotics/data/test1.csv.
 </code></pre>
 
 <p>Then press the upload button.
@@ -171,43 +186,22 @@ You should get a message which informs you about the number of imported records.
 The test data set contains an example for doing a small scrum planning. </p>
 
 <table>
-<tr>
-<th>Column</th>
-<th>Description</th>
-</tr>
-<tr>
-<td>backlogitem</td>
-<td>Main category of development tasks</td>
-</tr>
-<tr>
-<td>task</td>
-<td>Task within a backlog item</td>
-</tr>
-<tr>
-<td>type</td>
-<td>Type of the task, for instance dev=development or test=create test case</td>
-</tr>
-<tr>
-<td>name</td>
-<td>Responsible developer</td>
-</tr>
-<tr>
-<td>status</td>
-<td>Status like open or finished</td>
-</tr>
-<tr>
-<td>prio</td>
-<td>Priority 1,2,3...</td>
-</tr>
-<tr>
-<td>effort</td>
-<td>Effort</td>
-</tr>
-<tr>
-<td>icon</td>
-<td>test column for demonstrating how to include icons into a table</td>
-</tr>
-</table><p>Here is a suggestion how to configure the columns:</p>
+<thead>
+<tr> <th>Column</th><th>Description</th>
+</thead>
+<tbody>
+<tr><td>backlogitem</td><td>Main category of development tasks</td></tr>
+<tr><td>task</td><td>Task within a backlog item</td></tr>
+<tr><td>type</td><td>Type of the task, for instance dev=development or test=create test case</td></tr>
+<tr><td>name</td><td>Responsible developer</td></tr>
+<tr><td>status</td><td>Status like open or finished</td></tr>
+<tr><td>prio</td><td>Priority 1,2,3...</td></tr>
+<tr><td>effort</td><td>Effort</td></tr>
+<tr><td>icon</td><td>test column for demonstrating how to include icons into a table</td></tr>
+</tbody>
+</table>
+
+<p>Here is a suggestion how to configure the columns:</p>
 
 <p><img alt="configure screen" src="doc/configure.jpg"></p>
 
@@ -232,7 +226,9 @@ you can display icons in columns. </p>
 <li>Sum: Calculates the sum of columns. Only useful for type Integer or Float.</li>
 <li>Statistic: Create a statistic. For each value of a column you will get the number of records with this value.</li>
 <li>List: String concatenation of all columns, separator is line break.</li>
-</ul><p><a name="analyze"></a></p>
+</ul>
+
+<p><a name="analyze"></a></p>
 
 <h1>Analyze</h1>
 
@@ -333,13 +329,15 @@ need to use your own mechanism for ensuring data consistency (maybe by a PHP req
 <pre><code>...&amp;css=white.css
 </code></pre>
 
+ <!-- END CONTENT -->
 <a name="comments"></a>
 <h1>Comments</h1>
   
   <div class="comment-create">  Want to leave a comment? Visit <a href="https://github.com/os69/pivotics/issues/1"> this post's issue page on GitHub</a> (you'll need a GitHub account. What? Like you already don't have one?!).
   </div>
-  
-  
+   
+
+ 
 <div id="comments"></div>
 <script>window.comments.render($("#comments"));</script>
 
