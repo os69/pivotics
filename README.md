@@ -2,6 +2,7 @@
 # TOC
 
 * [Introduction](#introduction)
+* [Technology](#techcnology)
 * [History](#history)
 * [Browser Support](#browsersupport)
 * [Installation](#installation)
@@ -16,14 +17,14 @@
 <a name="introduction"></a>
 # Introduction 
 
-*Pivotics* is a HTML5 based [pivot table](http://en.wikipedia.org/wiki/Pivot_table) editor. It allows you to
+*Pivotics* is a HTML5 based [pivot table](http://en.wikipedia.org/wiki/Pivot_table) editor. *Pivotics* is free and open source. It allows you to
 
 * Import CSV data
 * Configure the imported data, especially
  * Configure the data types of the imported columns
  * Set an aggregation function
  * Define key fields
-* Analyze the imported data by defining table views.
+* Analyze the imported data by defining table views (similar but not identical to spreadsheets).
  * Define table views by distributing fields on rows and columns
  * Aggregate (for instance sum) columns
  * Edit the data
@@ -33,7 +34,7 @@
 * Export to CSV
 * *Pivotics* includes a simple python based webserver which you can use in your local network for loading and storing data. Optionally you can use also your own webserver. 
 * The state of the *Pivotics* UI is stored in the URL so you can easly send links to other people.
-
+ 
 *Pivotics* also has some drawbacks you should now:
 
 * It is not designed for a huge amount of data. I tested it with up to 500 records and about 10 attributes per record.
@@ -45,6 +46,12 @@ I oberserve no lag of time but for larger datasets this will happen.
 [Pivot tables](http://en.wikipedia.org/wiki/Pivot_table) are a great and well known concept in [OLAP](http://en.wikipedia.org/wiki/Online_analytical_processing).
 
 Also if you don't like *Pivotics* I encourage you to test the pivot table implementation in [Microsoft Excel](http://office.microsoft.com/en-us/excel-help/pivottable-reports-101-HA001034632.aspx) or in [Open Office](http://openoffice.blogs.com/openoffice/2006/11/data_pilots_in_.html).
+
+
+<a name="technology"></a>
+# Technology
+
+*Pivotics* is a HTML5 browser application. It is implemented using Javascript, CSS and HTML.
 
 <a name="history"></a>
 # History 
@@ -67,7 +74,7 @@ So developers tend to boycott the tools.
 In order to overcome these problems I developed *Pivotics* a HTLM5 based tool for configuring and editing pivot tables.
 In fact this is not a pure scrum tool instead it allows you to create and edit arbitrary column based data (like a database table) and
 to define own table views on this data.
-Whether you use the tools for scrum planning, organizing your private TODO, or maintain the shopping list of your girlfriend is up to you.
+Whether you use the tool for scrum planning, organizing your private TODO, or maintain the shopping list of your girlfriend is up to you.
 
 <a name="browsersupport"></a>
 # Browser Support
@@ -97,6 +104,9 @@ This server is highly insecure an could expose your complete filesystem to the p
 Instead of using the included webserver you can also extract the archive in www directory of a professional 
 web server. This should work for all GET requests. *Pivotics* uses a POST request to store data on the server. Probably you need
 to enable  POST requests in your webserver configuration.
+
+## Chrome App
+*Pivotics* is available in the <a href="https://chrome.google.com/webstore/search/pivotics">Chrome Web Store</a>
 
 <a name="import"></a>
 # Import
