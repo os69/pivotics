@@ -2,7 +2,7 @@
 # TOC
 
 * [Introduction](#introduction)
-* [Technology](#techcnology)
+* [Technology](#technology)
 * [History](#history)
 * [Browser Support](#browsersupport)
 * [Installation](#installation)
