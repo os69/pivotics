@@ -26,38 +26,82 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
     main.initImport = function() {
 
         $("#importButton").click(function() {
-
             var file = $("#importInput")[0].files[0];
-
             core.readFile(file, $("#importStatus"), function(file, evt) {
-
-                // convert csv to objects
-                var dataRaw = evt.target.result;
-                var data = $.csv.toObjects(dataRaw);
-                if (data.length === 0) {
-                    alert("No data!");
-                    return;
+                if (core.endsWith(file.name.toLowerCase(), ".csv")) {
+                    main.importCsv(evt.target.result);
+                } else {
+                    main.importJSON(evt.target.result);
                 }
+                $("#importStatus").text(database.data.length + " records imported to memory");
+            });
+        });
 
-                // create dimensions
-                var dimensions = createDimensions(data[0]);
-
-                // create database
-                database = db.database({
-                    data : data,
-                    dimensions : dimensions,
-                    name : $("#databaseInput").val(),
-                    onSuccess : function(database) {
-                        $("#importStatus").text(database.data.length + " records imported");
-                    }
+        $("#loadBuiltinTestData").click(
+                function() {
+                    database = db.database({
+                        name : 'pivotics_test',
+                        onSuccess : function(database) {
+                            main.setHeader(database.title(), database.subtitle(), database.link());
+                            core.url().parameter('db', 'pivotics_test').parameterJSON('rows', [ 'backlogitem', 'task' ]).parameterJSON('cols', [ 'measure', 'type' ])
+                                    .parameterJSON('measures', [ 'prio', 'icon' ]).submit();
+                            alert(database.data.length + " records loaded");
+                        },
+                        onError : function(e) {
+                            alert(e.statusText);
+                        }
+                    });
                 });
 
-            });
+    };
 
+    // =========================================================================
+    // import csv
+    // =========================================================================
+    main.importCsv = function(dataRaw) {
+
+        // convert csv to objects
+        var data = $.csv.toObjects(dataRaw);
+        if (data.length === 0) {
+            alert("No data!");
+            return;
+        }
+
+        // create dimensions
+        var dimensions = createDimensions(data[0]);
+
+        // create database
+        database = db.database({
+            data : data,
+            dimensions : dimensions,
+            name : $("#databaseInput").val()
         });
 
     };
 
+    // =========================================================================
+    // import json
+    // =========================================================================
+    main.importJSON = function(dataRaw) {
+
+        // convert json string to json object
+        if (dataRaw.length === 0) {
+            alert("No data!");
+            return;
+        }
+        var importDb = JSON.parse(dataRaw);
+        
+        // reset version counter
+        importDb.header.version=0;
+
+        // create database from json object
+        database = db.database({
+            name : 'import',
+            data : []
+        });
+        database.fromJSON(importDb);
+
+    };
     // =========================================================================
     // init configure tab
     // =========================================================================
@@ -83,13 +127,17 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
     };
 
     // =========================================================================
-    // init analyze tab 
+    // init analyze tab
     // =========================================================================
     main.initAnalyze = function() {
         if (!database) {
             return;
         }
-        main.analyzer();
+        main.analyzer({
+            database : database,
+            rowDimensions : [],
+            colDimensions : [ '' ]
+        });
     };
 
     // =========================================================================
@@ -99,12 +147,27 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
         if (!database) {
             return;
         }
-        var csv = database.exportCsv();
-        var URL = window.URL || window.webkitURL;
-        var blob = new Blob([ csv ], {
-            'type' : 'text\/plain'
+        $("#exportButton").click(function() {
+
+            var data = null;
+            var exportFormat = $("input[name='export']:checked").val();
+
+            switch (exportFormat) {
+            case 'JSON':
+                data = JSON.stringify(database.toJSON());
+                break;
+            case 'CSV':
+                data = database.exportCsv();
+                break;
+            }
+
+            var URL = window.URL || window.webkitURL;
+            var blob = new Blob([ data ], {
+                'type' : 'text\/plain'
+            });
+            document.location = URL.createObjectURL(blob);
+
         });
-        document.location = URL.createObjectURL(blob);
     };
 
     // =========================================================================
@@ -112,10 +175,13 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
     // =========================================================================
     main.analyzer = core.createClass({
 
-        init : function() {
+        init : function(properties) {
 
             // fields
             var self = this;
+
+            self.database = properties.database;
+
             self.measureDimension = analytics.measureDimension([]);
             self.rowDimensions = [];
             self.colDimensions = [];
@@ -128,16 +194,16 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
             self.sumFields = 0;
             self.pivotInPivot = false;
 
-            var allDimensions = database.dimensions.slice();
+            var allDimensions = self.database.dimensions.slice();
             allDimensions.push(self.measureDimension);
             self.dimensionsMap = self.createDimensionsMap(allDimensions);
 
-            allDimensions = database.dimensions.slice();
+            allDimensions = self.database.dimensions.slice();
             allDimensions.push(self.measureDimension2);
             self.dimensionsMap2 = self.createDimensionsMap(allDimensions);
 
             // by default all data is valid
-            database.filter(function() {
+            self.database.filter(function() {
                 return true;
             });
 
@@ -153,7 +219,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
             $("#tableoptions1").empty();
             self.tabledialog = tableoptionsui.Dialog({
                 parentNode : $("#tableoptions1"),
-                dimensions : database.dimensions,
+                dimensions : self.database.dimensions,
                 measureDimension : self.measureDimension,
                 rowDimensions : self.rowDimensions,
                 colDimensions : self.colDimensions,
@@ -180,7 +246,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
             $("#tableoptions2").empty();
             self.tabledialog2 = tableoptionsui.Dialog({
                 parentNode : $("#tableoptions2"),
-                dimensions : database.dimensions,
+                dimensions : self.database.dimensions,
                 measureDimension : self.measureDimension2,
                 rowDimensions : self.rowDimensions2,
                 colDimensions : self.colDimensions2,
@@ -198,8 +264,8 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
 
         setSumExtendFunctions : function() {
             var self = this;
-            for ( var i = 0; i < database.dimensions.length; ++i) {
-                database.dimensions[i].extend = null;
+            for ( var i = 0; i < self.database.dimensions.length; ++i) {
+                self.database.dimensions[i].extend = null;
             }
             if (self.sumFields > 0) {
                 self.rowDimensions[0].extend = analytics.sumExtend(self.sumFields, self.rowDimensions.length);
@@ -217,12 +283,14 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
 
         apply : function() {
 
+            var self = this;
+
             // apply filter
             var filterCondition = this.filterCondition = $("#filterarea").val();
             var evalFunction = function() {
                 return eval(filterCondition);
             };
-            database.filter(evalFunction);
+            self.database.filter(evalFunction);
 
             // apply for table options dialog
             this.tabledialog.apply();
@@ -232,20 +300,17 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
             this.sumFields = parseInt($("#sumfields").val());
             this.setSumExtendFunctions();
 
-            // close complete options dialog
-            // $("#tableoptions").slideToggle();
-
             // serialize
             this.serializeToUrl();
 
             // create result set
             var self = this;
-            var resultSet = analytics.resultSet([ self.rowDimensions, self.colDimensions ], database);
+            var resultSet = analytics.resultSet([ self.rowDimensions, self.colDimensions ], self.database);
 
             // draw result set
             $("#pivot").empty();
             if (self.pivotInPivot) {
-                var renderer = cellrenderer.pivotRenderer(self.rowDimensions2, self.colDimensions2, database);
+                var renderer = cellrenderer.pivotRenderer(self.rowDimensions2, self.colDimensions2, self.database);
                 tableui.Table({
                     resultSet : resultSet,
                     cellRenderer : renderer
@@ -259,7 +324,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
         },
 
         serializeDimensions : function(dimensions) {
-            var result = []
+            var result = [];
             for ( var i = 0; i < dimensions.length; ++i) {
                 var dimension = dimensions[i];
                 result.push(dimension.name);
@@ -372,6 +437,10 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
 
         $("#saveButton").click(function() {
             var databaseName = $("#databaseInput").val();
+            if(databaseName.length===0){
+                alert("enter db name");
+                return;
+            }
             core.url().parameter('db', databaseName).submit();
             database.name(databaseName);
             database.save(function() {

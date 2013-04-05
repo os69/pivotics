@@ -173,6 +173,9 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
                 };
             }
             if (properties.data) {
+                if(properties.data.length===0){
+                    return;
+                }
                 self.dimensions = properties.dimensions;
                 self.data = properties.data;
                 self.header = {
@@ -269,7 +272,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
         load : function(onSuccess, onError) {
             var self = this;
             var tmpOnSuccess = function(data) {
-                self.loaded(data);
+                self.fromJSON(data);
                 if (onSuccess) {
                     onSuccess();
                 }
@@ -279,7 +282,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
                     onError(error);
                 }
             };
-            if (core.isChromeApp()) {
+            if (core.isChromeApp() && self.filename!=='pivotics_test') {
                 fs.read(self.filename + ".json", tmpOnSuccess, tmpOnError);
             } else {
                 $.ajax({
@@ -292,7 +295,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
             }
         },
 
-        loaded : function(data) {
+        fromJSON : function(data) {
             var self = this;
             var responseJson = null;
             if (typeof data === 'string') {
@@ -442,8 +445,8 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
             }
         },
 
-        save : function(onSuccess, onError) {
-
+        toJSON : function(){
+            
             // assemble saveData from self.data
             var self = this;
             var saveData = [];
@@ -460,9 +463,25 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
             var dimensions = self.dimensions.map(function(dimension) {
                 return dimension.toJSON();
             });
+          
+            // return JSON
+            return{
+                data : saveData,
+                header : self.header,
+                dimensions : dimensions
+            };
+            
+        },
+        
+        save : function(onSuccess, onError) {
 
+            var self = this;
+            
             // increase version
             self.header.version++;
+  
+            // assemble string with json data
+            var saveDataString = JSON.stringify(self.toJSON());
 
             // success handler
             var tmpOnSuccess = function() {
@@ -478,13 +497,6 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
                     onError(error);
                 }
             };
-
-            // data for saving
-            var saveDataString = JSON.stringify({
-                data : saveData,
-                header : self.header,
-                dimensions : dimensions
-            });
 
             // post
             if (core.isChromeApp()) {
