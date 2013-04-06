@@ -477,6 +477,11 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
 
             var self = this;
             
+            // check for pivotics_test
+            if(self.filename === 'pivotics_test'){
+                alert("Builtin database cannot be changed. Save under different name.");
+                return;
+            }
             // increase version
             self.header.version++;
   

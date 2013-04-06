@@ -34,6 +34,9 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
                     main.importJSON(evt.target.result);
                 }
                 $("#importStatus").text(database.data.length + " records imported to memory");
+                main.setHeader(database.title(), database.subtitle(), database.link());
+                core.url().parameter('db',database.name()).submit();
+                $("#databaseInput").val(database.name());
             });
         });
 
@@ -43,8 +46,9 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
                         name : 'pivotics_test',
                         onSuccess : function(database) {
                             main.setHeader(database.title(), database.subtitle(), database.link());
-                            core.url().parameter('db', 'pivotics_test').parameterJSON('rows', [ 'backlogitem', 'task' ]).parameterJSON('cols', [ 'measure', 'type' ])
+                            core.url().parameter('db', 'pivotics_test').parameterJSON('rows', [ 'backlogitem', 'task' ]).parameterJSON('cols', [ 'type', 'measure' ])
                                     .parameterJSON('measures', [ 'prio', 'icon' ]).submit();
+                            $("#databaseInput").val(database.name());
                             alert(database.data.length + " records loaded");
                         },
                         onError : function(e) {
@@ -74,7 +78,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
         database = db.database({
             data : data,
             dimensions : dimensions,
-            name : $("#databaseInput").val()
+            name : 'import'
         });
 
     };
@@ -90,9 +94,9 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
             return;
         }
         var importDb = JSON.parse(dataRaw);
-        
+
         // reset version counter
-        importDb.header.version=0;
+        importDb.header.version = 0;
 
         // create database from json object
         database = db.database({
@@ -437,7 +441,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
 
         $("#saveButton").click(function() {
             var databaseName = $("#databaseInput").val();
-            if(databaseName.length===0){
+            if (databaseName.length === 0) {
                 alert("enter db name");
                 return;
             }
