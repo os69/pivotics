@@ -153,7 +153,7 @@ define([ "pivotics.core.js" ], function(core) {
 			comparator : analytics.stringComparator,
 			int2ext : function(value) {
 				var result = "";
-				result = value.replace(/([0-9]+_[a-z]+)/g,"<image style='height:1.5em' src='images/$1.png'>");
+				result = value.replace(/([0-9]+_[a-z]+)/g,"<img style='height:1.5em' src='images/$1.png'>");
 //				if(!matches){
 //					return value;
 //				}
@@ -164,6 +164,9 @@ define([ "pivotics.core.js" ], function(core) {
 				return result;
 			},
 			ext2int : function(value) {
+			    if(core.startsWith(value,"<img")){
+			        return;
+			    }
 				return ""+value;
 			}
 		};
