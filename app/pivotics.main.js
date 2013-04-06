@@ -464,7 +464,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
                     alert(database.data.length + " records loaded");
                 },
                 onError : function(e) {
-                    alert(e.statusText);
+                    alert("load error:"+e.statusText);
                 }
             });
 
@@ -480,7 +480,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.db", "pivotics.dimensi
                     htmlloader.load('#main', 'analyze.html');
                 },
                 onError : function(e) {
-                    alert(e.statusText);
+                    alert("load error:"+e.statusText);
                 }
             });
         } else {
