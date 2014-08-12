@@ -3,5 +3,5 @@
 - does extend belong to dimension?
 - ext2int in analytics?
 - change on row and columns but not for measures
-
-
+- enter this.status='planned' into filter field -> eval sets value and changes data
+-support tab
