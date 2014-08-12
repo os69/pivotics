@@ -1,194 +1,211 @@
-define([ "pivotics.core", "pivotics.analytics", "pivotics.db" ], function(core, analytics, db) {
+/* global define */
+/* global $ */
 
-	"use strict";
-	
-	var ui = {};
+define(["pivotics.core", "pivotics.analytics", "pivotics.db"], function (core, analytics, db) {
 
-	ui.DimensionTable = core.createClass({
+    "use strict";
 
-		init : function(properties) {
-			this.parentNode = properties.parentNode;
-			this.database = properties.database;
-			this.container = null;
-			this.onApply = properties.onApply;
-			this.render();
-		},
+    var ui = {};
 
-		render : function() {
+    ui.DimensionTable = core.createClass({
 
-			var self = this;
-			
-			// create updater
-			self.updater = db.updater({
-				database : self.database
-			});
-			self.dimensions = self.updater.newDimensions; 
+        init: function (properties) {
+            this.parentNode = properties.parentNode;
+            this.database = properties.database;
+            this.container = null;
+            this.onApply = properties.onApply;
+            this.render();
+        },
 
-			// setup container
-			if (this.container) {
-				this.container.remove();
-			}
-			this.container = $("<div class='dimensionui'></div>");
-			this.parentNode.append(this.container);
+        render: function () {
 
-			// toolbar
-			var toolbar = $("<div></div>");
-			this.container.append(toolbar);
-			var addButton = $("<img src='images/Add.png' class='icon'>");
-			addButton.click(function() {
-				var dimension = analytics.dimension({
-					name : 'new',
-					key : false,
-					aggregationFunction : analytics.listAggregationFunction
-				});
-				self.dimensions.push(dimension);
-				self.renderDimension(table, dimension);
-			});
-			toolbar.append(addButton);
+            var self = this;
 
-			// table for dimensions
-			var table = $("<table><tbody></tbody></table>");
-			this.container.append(table);
+            // create updater
+            self.updater = db.updater({
+                database: self.database
+            });
+            self.dimensions = self.updater.newDimensions;
 
-			// table header
-			this.renderTableHeader(table);
-			
-			// create row for each dimensions
-			for ( var i = 0; i < this.dimensions.length; ++i) {
-				var dimension = this.dimensions[i];
-				this.renderDimension(table, dimension);
-			}
+            // setup container
+            if (this.container) {
+                this.container.remove();
+            }
+            this.container = $("<div class='dimensionui'></div>");
+            this.parentNode.append(this.container);
 
-			// apply button
-			var applyButton = $("<button class='button'>Apply</button>");
-			this.container.append(applyButton);
-			applyButton.click(function() {
-				self.updater.update();
-				if(self.onApply){
-					self.onApply();
-				}
-				self.render();
-			});
+            // toolbar
+            var toolbar = $("<div></div>");
+            this.container.append(toolbar);
+            var addButton = $("<img src='images/Add.png' class='icon'>");
+            addButton.click(function () {
+                var dimension = analytics.dimension({
+                    name: 'new',
+                    key: false,
+                    aggregationFunction: analytics.listAggregationFunction
+                });
+                self.dimensions.push(dimension);
+                self.renderDimension(table, dimension);
+            });
+            toolbar.append(addButton);
 
-		},
+            // table for dimensions
+            var table = $("<table><tbody></tbody></table>");
+            this.container.append(table);
 
-		renderTableHeader : function(parentNode){
-			parentNode.append("<tr><th>Name</th><th>Key</th><th>Type</th><th>Initial Value</th><th>Aggregration</th><th>Delete</th></tr>");
-		},
-		
-		renderDimension : function(parentNode, dimension) {
+            // table header
+            this.renderTableHeader(table);
 
-			var self = this;
+            // create row for each dimensions
+            for (var i = 0; i < this.dimensions.length; ++i) {
+                var dimension = this.dimensions[i];
+                this.renderDimension(table, dimension);
+            }
 
-			// row container
-			var row = $("<tr></tr>");
-			parentNode.append(row);
+            // apply button
+            var applyButton = $("<button class='button'>Apply</button>");
+            this.container.append(applyButton);
+            applyButton.click(function () {
+                self.updater.update();
+                if (self.onApply) {
+                    self.onApply();
+                }
+                self.render();
+            });
 
-			// name
-			var name = $("<td></td>");
-			row.append(name);
-			var nameInput = $("<input type='text' value='" + dimension.name + "'>");
-			nameInput.keyup(function() {
-				dimension.name = $(this).val();
-			});
-			name.append(nameInput);
+        },
 
-			// key
-			var key = $("<td></td>");
-			row.append(key);
-			var keyCheckbox = null;
-			if (dimension.key) {
-				keyCheckbox = $("<input type='Checkbox' name='dummy'  checked='checked'>");
-			} else {
-				keyCheckbox = $("<input type='Checkbox' name='dummy'>");
-			}
-			key.append(keyCheckbox);
-			keyCheckbox.click(function() {
-				if ($(this).is(':checked')) {
-					dimension.key = true;
-				} else {
-					dimension.key = false;
-				}
-			});
+        renderTableHeader: function (parentNode) {
+            parentNode.append("<tr><th>Name</th><th>Key</th><th>Type</th><th>Initial Value</th><th>Aggregration</th><th>Sort</th><th>Delete</th></tr>");
+        },
 
-			// data type
-			var dataType = $("<td></td>");
-			dataType.append(this.createDropdown({
-				entries : analytics.getDataTypes(),
-				defaultEntry : dimension.dataType,
-				description : function(dataType) {
-					return dataType.description;
-				},
-				change : function(dataType) {
-					var extInitialValue = dimension.dataType.int2ext(dimension.initialValue);
-					dimension.dataType = dataType;
-					dimension.initialValue = dimension.dataType.ext2int(extInitialValue);
-					//self.database.convertDataType(dimension);
-				}
-			}));
-			row.append(dataType);
+        renderDimension: function (parentNode, dimension) {
 
-			// initial value
-			var initialValue = $("<td></td>");
-			row.append(initialValue);
-			var extInitialValue = dimension.dataType.int2ext(dimension.initialValue);
-			var initialValueInput = $("<input type='text' value='" + extInitialValue + "'>");
-			initialValueInput.keyup(function() {
-				dimension.initialValue = dimension.dataType.ext2int($(this).val());
-			});
-			initialValue.append(initialValueInput);
+            var self = this;
 
-			// aggregation function
-			var aggregation = null;
-			if (dimension.aggregationFunction) {
-				aggregation = $("<td></td>");
-				aggregation.append(this.createDropdown({
-					entries : analytics.getAggregationFunctions(),
-					defaultEntry : dimension.aggregationFunction,
-					description : function(aggregationFunction) {
-						return aggregationFunction.description;
-					},
-					change : function(aggregationFunction) {
-						dimension.aggregationFunction = aggregationFunction;
-					}
-				}));
-			} else {
-				aggregation = $("<td>" + "none" + "</td>");
-			}
-			row.append(aggregation);
+            // row container
+            var row = $("<tr></tr>");
+            parentNode.append(row);
 
-			// delete button
-			var del = $("<td></td>");
-			row.append(del);
-			var delImage = $("<img class='icon' src='images/Delete.png'>");
-			delImage.click(function() {
-				core.removeElement(self.dimensions, dimension);
-				row.remove();
-			});
-			del.append(delImage);
+            // name
+            var name = $("<td></td>");
+            row.append(name);
+            var nameInput = $("<input type='text' value='" + dimension.name + "'>");
+            nameInput.keyup(function () {
+                dimension.name = $(this).val();
+            });
+            name.append(nameInput);
 
-		},
+            // key
+            var key = $("<td></td>");
+            row.append(key);
+            var keyCheckbox = null;
+            if (dimension.key) {
+                keyCheckbox = $("<input type='Checkbox' name='dummy'  checked='checked'>");
+            } else {
+                keyCheckbox = $("<input type='Checkbox' name='dummy'>");
+            }
+            key.append(keyCheckbox);
+            keyCheckbox.click(function () {
+                if ($(this).is(':checked')) {
+                    dimension.key = true;
+                } else {
+                    dimension.key = false;
+                }
+            });
 
-		createDropdown : function(options) {
+            // data type
+            var dataType = $("<td></td>");
+            dataType.append(this.createDropdown({
+                entries: analytics.getDataTypes(),
+                defaultEntry: dimension.dataType,
+                description: function (dataType) {
+                    return dataType.description;
+                },
+                change: function (dataType) {
+                    var extInitialValue = dimension.dataType.int2ext(dimension.initialValue);
+                    dimension.dataType = dataType;
+                    dimension.initialValue = dimension.dataType.ext2int(extInitialValue);
+                    //self.database.convertDataType(dimension);
+                }
+            }));
+            row.append(dataType);
 
-			var dropdown = $("<select></select>");
-			for ( var i = 0; i < options.entries.length; ++i) {
-				var entry = options.entries[i];
-				var description = options.description(entry);
-				if (entry === options.defaultEntry) {
-					dropdown.append("<option selected='selected'>" + description + "</option>");
-				} else {
-					dropdown.append("<option>" + description + "</option>");
-				}
-			}
-			dropdown.change(function() {
-				options.change(options.entries[this.selectedIndex]);
-			});
-			return dropdown;
-		}
+            // initial value
+            var initialValue = $("<td></td>");
+            row.append(initialValue);
+            var extInitialValue = dimension.dataType.int2ext(dimension.initialValue);
+            var initialValueInput = $("<input type='text' value='" + extInitialValue + "'>");
+            initialValueInput.keyup(function () {
+                dimension.initialValue = dimension.dataType.ext2int($(this).val());
+            });
+            initialValue.append(initialValueInput);
 
-	});
+            // aggregation function
+            var aggregation = null;
+            if (dimension.aggregationFunction) {
+                aggregation = $("<td></td>");
+                aggregation.append(this.createDropdown({
+                    entries: analytics.getAggregationFunctions(),
+                    defaultEntry: dimension.aggregationFunction,
+                    description: function (aggregationFunction) {
+                        return aggregationFunction.description;
+                    },
+                    change: function (aggregationFunction) {
+                        dimension.aggregationFunction = aggregationFunction;
+                    }
+                }));
+            } else {
+                aggregation = $("<td>" + "none" + "</td>");
+            }
+            row.append(aggregation);
 
-	return ui;
+            // comparator
+            var comparator = $("<td></td>");
+            comparator.append(this.createDropdown({
+                entries: analytics.getComparatorFunctions(),
+                defaultEntry: dimension.comparatorFunction,
+                description: function (comparatorFunction) {
+                    return comparatorFunction.description;
+                },
+                change: function (comparatorFunction) {
+                    dimension.comparatorFunction = comparatorFunction;
+                }
+            }));
+            row.append(comparator);
+
+            // delete button
+            var del = $("<td></td>");
+            row.append(del);
+            var delImage = $("<img class='icon' src='images/Delete.png'>");
+            delImage.click(function () {
+                core.removeElement(self.dimensions, dimension);
+                row.remove();
+            });
+            del.append(delImage);
+
+        },
+
+        createDropdown: function (options) {
+
+            var dropdown = $("<select></select>");
+            for (var i = 0; i < options.entries.length; ++i) {
+                var entry = options.entries[i];
+                var description = options.description(entry);
+                if (entry === options.defaultEntry) {
+                    dropdown.append("<option selected='selected'>" + description + "</option>");
+                } else {
+                    dropdown.append("<option>" + description + "</option>");
+                }
+            }
+            dropdown.change(function () {
+                options.change(options.entries[this.selectedIndex]);
+            });
+            return dropdown;
+        }
+
+    });
+
+    return ui;
 
 });

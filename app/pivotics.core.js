@@ -323,6 +323,7 @@ define([], function() {
 		if(typeof chrome === "undefined"){
 			return false;
 		}
+        if(!chrome.runtime) return false;
 		var manifest = chrome.runtime.getManifest();
 		if(core.startsWith(manifest.name,"Pivotics")){
 			return true;
