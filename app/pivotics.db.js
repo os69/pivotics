@@ -1,3 +1,7 @@
+/* global define */
+/* global alert */
+/* global $ */
+
 define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, analytics, fs) {
 
     "use strict";
@@ -60,7 +64,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
                 delete record[deletedDimension.name];
             }
             // change
-            for ( var i = 0; i < delta.changed.length; ++i) {
+            for (i = 0; i < delta.changed.length; ++i) {
                 var changedDimension = delta.changed[i];
                 if (changedDimension.dataTypeChanged) {
                     this.convertDataType(record, changedDimension.newDimension);
@@ -70,7 +74,7 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
                 }
             }
             // add
-            for ( var i = 0; i < delta.added.length; ++i) {
+            for (i = 0; i < delta.added.length; ++i) {
                 var addedDimension = delta.added[i];
                 record[addedDimension.name] = addedDimension.initialValue;
             }
@@ -81,11 +85,12 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
             var addedDimensions = [];
             var deletedDimensions = [];
             var changedDimensions = [];
+            var newDimension, oldDimension;
 
             var newDimensionsMap = this.createMap(newDimensions);
             for ( var i = 0; i < oldDimensions.length; ++i) {
-                var oldDimension = oldDimensions[i];
-                var newDimension = newDimensionsMap[oldDimension.specialKey];
+                oldDimension = oldDimensions[i];
+                newDimension = newDimensionsMap[oldDimension.specialKey];
                 if (newDimension) {
                     var changedDimension = this.determineDimensionChanges(oldDimension, newDimension);
                     if (changedDimension) {
@@ -97,9 +102,9 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
             }
 
             var oldDimensionsMap = this.createMap(oldDimensions);
-            for ( var i = 0; i < newDimensions.length; ++i) {
-                var newDimension = newDimensions[i];
-                var oldDimension = oldDimensionsMap[newDimension.specialKey];
+            for (i = 0; i < newDimensions.length; ++i) {
+                newDimension = newDimensions[i];
+                oldDimension = oldDimensionsMap[newDimension.specialKey];
                 if (!oldDimension) {
                     addedDimensions.push(newDimension);
                 }
@@ -520,18 +525,19 @@ define([ "pivotics.core", "pivotics.analytics", "pivotics.fs" ], function(core, 
 
         exportCsv : function() {
             var result = "";
+            var dimension;
             for ( var i = 0; i < this.dimensions.length; ++i) {
-                var dimension = this.dimensions[i];
+                dimension = this.dimensions[i];
                 result += '"' + dimension.name + '"';
                 if (i < this.dimensions.length - 1) {
                     result += ",";
                 }
             }
             result += "\n";
-            for ( var i = 0; i < this.data.length; ++i) {
+            for (i = 0; i < this.data.length; ++i) {
                 var record = this.data[i];
                 for ( var j = 0; j < this.dimensions.length; ++j) {
-                    var dimension = this.dimensions[j];
+                    dimension = this.dimensions[j];
                     result += '"' + record[dimension.name] + '"';
                     if (j < this.dimensions.length - 1) {
                         result += ",";
