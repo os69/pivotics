@@ -12,7 +12,7 @@ define([ "pivotics.core", "pivotics.analytics" ], function(core, analytics) {
 
 		render : function(params) {
 			var value = params.cellData.measure.dataType.int2ext(params.cellData.value);
-			var col = $("<td>" + value + "</td>");
+			var col = $("<td tabindex=0>" + value + "</td>");
 			params.parentNode.append(col);
 			return col;
 		}

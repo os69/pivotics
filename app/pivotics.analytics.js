@@ -171,7 +171,8 @@ define(["pivotics.core.js"], function (core) {
             return value + '';
         },
         ext2int: function (value) {
-            return parseInt(value, 10);
+            var n = parseInt(value, 10);
+            return isNaN(n) ? 0 : n;
         }
     };
 
@@ -183,7 +184,8 @@ define(["pivotics.core.js"], function (core) {
             return value + '';
         },
         ext2int: function (value) {
-            return parseFloat(value, 10);
+            var n = parseFloat(value, 10);
+            return isNaN(n) ? 0 : n;
         }
     };
 
@@ -191,23 +193,14 @@ define(["pivotics.core.js"], function (core) {
         id: 'dataTypeIcon',
         description: 'Icon',
         comparatorFunction: analytics.stringComparator,
-        int2ext: function (value) {
+        int2ext: function (value, type) {
+            if (type === 'edit') return value;
             var result = "";
             result = value.replace(/([0-9]+_[a-z]+)/g, "<img style='height:1.5em' src='images/$1.png'>");
-            //				if(!matches){
-            //					return value;
-            //				}
-            //				for(var i=0;i<matches.length;++i){
-            //					var match = matches[i];
-            //					result+="<image src='images/"+match+".png'>";
-            //				}
             return result;
         },
         ext2int: function (value) {
-            if (core.startsWith(value, "<img")) {
-                return;
-            }
-            return "" + value;
+            return value;
         }
     };
 
@@ -418,7 +411,7 @@ define(["pivotics.core.js"], function (core) {
                 newTuple.originalTuple = tuple.originalTuple;
                 newTuple.measure = measures[i].name;
                 var value = tuple[measures[i].name];
-                if (!value) {
+                if (value === undefined || value === null) {
                     value = measures[i].initialValue;
                 }
                 newTuple.value = value;
