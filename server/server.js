@@ -77,20 +77,65 @@ Server.prototype = {
     },
 
     saveFile: function (params, request, response) {
-        this.readBody(request, function (err, body) {
+
+        var self = this;
+
+        this.readBody(request, function (err, data) {
+
+            if (err) {
+                console.log("ERROR read request body: " + err.toString());
+                response.writeHead(500, {});
+                response.end();
+                return;
+            }
+
+            // client sends old and new (changed) data
+            data = JSON.parse(data);
+            var newData = data.newData;
+            var oldData = data.oldData;
+
+            // read data from file 
             var filepath = path.join('.', params.pathname);
-            fs.writeFile(filepath, body, function (err) {
+            fs.readFile(filepath, function (err, fileData) {
+
                 if (err) {
-                    console.log("ERROR write file: " + err.toString());
-                    response.writeHead(500, err.toString(), {});
+                    console.log("ERROR read file: " + err.toString());
+                    response.writeHead(500, {});
                     response.end();
                     return;
                 }
-                response.writeHead(200);
-                response.end();
-                console.log("save file:" + filepath);
+
+                // merge data
+                fileData = JSON.parse(fileData);
+                var mergeResult = self.merge(newData, oldData, fileData);
+
+                // save merged data
+                fs.writeFile(filepath, JSON.stringify(mergeResult.mergedData), function (err) {
+
+                    if (err) {
+                        console.log("ERROR write file: " + err.toString());
+                        response.writeHead(500, err.toString(), {});
+                        response.end();
+                        return;
+                    }
+
+                    response.writeHead(200);
+                    response.end();
+                    console.log("save file:" + filepath);
+
+                });
+
             });
+
+
         });
+    },
+
+    merge: function (myData, baseData, otherData) {
+        return {
+            mergedData: myData,
+            changed: false
+        };
     },
 
     serveFile: function (response, pathname) {
