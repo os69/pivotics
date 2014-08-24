@@ -1,3 +1,6 @@
+/* global define */
+/* global $ */
+
 define([ "pivotics.core.js", "pivotics.analytics" ], function(core, analytics) {
 
 	"use strict";
@@ -201,6 +204,7 @@ define([ "pivotics.core.js", "pivotics.analytics" ], function(core, analytics) {
 		createSubTable : function(parentNode, dimensions) {
 
 			var self = this;
+            var row, cell;
 
 			var table = $("<table></table>");
 			parentNode.append(table);
@@ -212,18 +216,18 @@ define([ "pivotics.core.js", "pivotics.analytics" ], function(core, analytics) {
 
 				var dimension = dimensions[i];
 
-				var row = $("<tr></tr>");
+				row = $("<tr></tr>");
 				tbody.append(row);
 
-				var cell = $("<td class='tableoptionsui_leaf'>" + dimension.name + "</td>");
+				cell = $("<td class='tableoptionsui_leaf'>" + dimension.name + "</td>");
 				row.append(cell);
 
 			}
-			if (dimensions.length == 0) {
-				var row = $("<tr></tr>");
+			if (dimensions.length === 0) {
+				row = $("<tr></tr>");
 				tbody.append(row);
 
-				var cell = $("<td class='tableoptionsui_leaf'>" + self.dummyText + "</td>");
+				cell = $("<td class='tableoptionsui_leaf'>" + self.dummyText + "</td>");
 				row.append(cell);
 
 			}

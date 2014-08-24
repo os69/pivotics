@@ -5,6 +5,7 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var path = require('path');
+var merge = require('./merge');
 
 // mime types
 // ===========================================================================
@@ -132,6 +133,7 @@ Server.prototype = {
     },
 
     merge: function (myData, baseData, otherData) {
+        //var merger = new merge.Merger(myData,baseData,otherData);
         return {
             mergedData: myData,
             changed: false

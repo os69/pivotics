@@ -49,7 +49,7 @@ define(["pivotics.core",
                 } else {
                     main.importJSON(evt.target.result);
                 }
-                $("#importStatus").text(database.data.length + " records imported to memory");
+                $("#importStatus").text(database.getLength() + " records imported to memory");
                 main.setHeader(database.title(), database.subtitle(), database.link());
                 core.url().parameter('db', database.name()).submit();
                 $("#databaseInput").val(database.name());
@@ -65,7 +65,7 @@ define(["pivotics.core",
                         core.url().parameter('db', 'pivotics_test').parameterJSON('rows', ['backlogitem', 'task']).parameterJSON('cols', ['type', 'measure'])
                             .parameterJSON('measures', ['prio', 'icon']).submit();
                         $("#databaseInput").val(database.name());
-                        alert(database.data.length + " records loaded");
+                        alert(database.getLength() + " records loaded");
                     },
                     onError: function (e) {
                         alert(e.statusText);
@@ -214,11 +214,11 @@ define(["pivotics.core",
             self.sumFields = 0;
             self.pivotInPivot = false;
 
-            var allDimensions = self.database.dimensions.slice();
+            var allDimensions = self.database.getDimensions().slice();
             allDimensions.push(self.measureDimension);
             self.dimensionsMap = self.createDimensionsMap(allDimensions);
 
-            allDimensions = self.database.dimensions.slice();
+            allDimensions = self.database.getDimensions().slice();
             allDimensions.push(self.measureDimension2);
             self.dimensionsMap2 = self.createDimensionsMap(allDimensions);
 
@@ -239,7 +239,7 @@ define(["pivotics.core",
             $("#tableoptions1").empty();
             self.tabledialog = tableoptionsui.Dialog({
                 parentNode: $("#tableoptions1"),
-                dimensions: self.database.dimensions,
+                dimensions: self.database.getDimensions(),
                 measureDimension: self.measureDimension,
                 rowDimensions: self.rowDimensions,
                 colDimensions: self.colDimensions,
@@ -266,7 +266,7 @@ define(["pivotics.core",
             $("#tableoptions2").empty();
             self.tabledialog2 = tableoptionsui.Dialog({
                 parentNode: $("#tableoptions2"),
-                dimensions: self.database.dimensions,
+                dimensions: self.database.getDimensions(),
                 measureDimension: self.measureDimension2,
                 rowDimensions: self.rowDimensions2,
                 colDimensions: self.colDimensions2,
@@ -284,8 +284,8 @@ define(["pivotics.core",
 
         setSumExtendFunctions: function () {
             var self = this;
-            for (var i = 0; i < self.database.dimensions.length; ++i) {
-                self.database.dimensions[i].extend = null;
+            for (var i = 0; i < self.database.getDimensions().length; ++i) {
+                self.database.getDimensions()[i].extend = null;
             }
             if (self.sumFields > 0) {
                 self.rowDimensions[0].extend = analytics.sumExtend(self.sumFields, self.rowDimensions.length);
@@ -477,7 +477,7 @@ define(["pivotics.core",
                 name: databaseName,
                 onSuccess: function (database) {
                     main.setHeader(database.title(), database.subtitle(), database.link());
-                    alert(database.data.length + " records loaded");
+                    alert(database.getLength() + " records loaded");
                 },
                 onError: function (e) {
                     alert("load error:" + e.statusText);

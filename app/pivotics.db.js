@@ -18,14 +18,14 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
 
         init: function (properties) {
             this.database = properties.database;
-            this.oldDimensions = this.database.dimensions;
+            this.oldDimensions = this.database.getDimensions();
             this.newDimensions = this.copyDimensions(this.oldDimensions);
         },
 
         update: function () {
 
             // switch to new dimensions in database
-            this.database.dimensions = this.newDimensions;
+            this.database.setDimensions(this.newDimensions);
 
             // determine added/deleted/changed dimensions
             var delta = this.determineDelta(this.oldDimensions, this.newDimensions);
@@ -36,6 +36,10 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             // create new index
             this.database.createIndex();
 
+        },
+
+        getNewDimensions: function () {
+            return this.newDimensions;
         },
 
         copyDimensions: function (dimensions) {
@@ -51,8 +55,9 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
         },
 
         applyDelta: function (delta, database) {
-            for (var i = 0; i < database.data.length; ++i) {
-                var record = database.data[i];
+            var data = database.getData();
+            for (var i = 0; i < data.length; ++i) {
+                var record = data[i];
                 this.applyDeltaRecord(delta, record);
             }
         },
@@ -169,41 +174,58 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
     db.database = core.createClass({
 
         init: function (properties) {
+
             var self = this;
+
+            // set default handlers
+            if (!properties.onError) properties.onError = function (e) {
+                alert(e);
+            };
+            if (!properties.onSuccess) properties.onSuccess = function () {};
+
+            // filename
             self.pathPrefix = "../data/";
             self.filename = properties.name;
-            if (!properties.onError) {
-                properties.onError = function (e) {
-                    alert(e);
-                };
-            }
-            if (properties.data) {
-                if (properties.data.length === 0) {
-                    return;
-                }
-                self.dimensions = properties.dimensions;
-                self.data = properties.data;
-                self.header = {
+
+            if (properties.newData) {
+                // 1. data is set by caller
+                self.newData = {};
+                self.newData.dimensions = properties.dimensions;
+                self.newData.data = properties.data;
+                self.newData.header = {
                     version: 0,
                     title: 'New DB',
                     subtitle: 'new db',
                     link: 'http://www.google.com'
                 };
                 self.createIndex();
-                if (properties.onSuccess) {
-                    properties.onSuccess(self);
-                }
+                self.oldData = null;
+                properties.onSuccess(self);
             } else {
-                self.dimensions = [];
-                self.data = null;
-                self.header = null;
+                // 2. data is loaded from file
                 self.load(function () {
                     self.createIndex();
-                    if (properties.onSuccess) {
-                        properties.onSuccess(self);
-                    }
-                }, properties.onError);
+                    properties.onSuccess(self);
+                }, function () {
+                    properties.onError();
+                });
             }
+        },
+
+        getData: function () {
+            return this.newData.data;
+        },
+
+        getLength: function () {
+            return this.newData.data.length;
+        },
+
+        getDimensions: function () {
+            return this.newData.dimensions;
+        },
+
+        setDimensions: function (dimensions) {
+            this.newData.dimensions = dimensions;
         },
 
         name: function () {
@@ -213,32 +235,32 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 var filename = arguments[0];
                 if (this.filename !== filename) {
                     this.filename = filename;
-                    this.header.version = 0;
+                    this.newData.header.version = 0;
                 }
             }
         },
 
         title: function () {
             if (arguments.length === 0) {
-                return this.header.title;
+                return this.newData.header.title;
             } else {
-                this.header.title = arguments[0];
+                this.newData.header.title = arguments[0];
             }
         },
 
         subtitle: function () {
             if (arguments.length === 0) {
-                return this.header.subtitle;
+                return this.newData.header.subtitle;
             } else {
-                this.header.subtitle = arguments[0];
+                this.newData.header.subtitle = arguments[0];
             }
         },
 
         link: function () {
             if (arguments.length === 0) {
-                return this.header.link;
+                return this.newData.header.link;
             } else {
-                this.header.link = arguments[0];
+                this.newData.header.link = arguments[0];
             }
         },
 
@@ -301,26 +323,33 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
         },
 
         fromJSON: function (data) {
+
             var self = this;
 
-            var responseJson = null;
+            // parse json            
             if (typeof data === 'string') {
-                responseJson = JSON.parse(data);
-            } else {
-                responseJson = data;
+                data = JSON.parse(data);
             }
 
-            self.oldData = $.extend(true,{}, responseJson);
+            // copy into old data (saving send old and new modified data to server)
+            self.oldData = $.extend(true, {}, data);
 
-            self.data = responseJson.data;
-            self.header = responseJson.header;
-            if (responseJson.dimensions) {
-                self.dimensions = responseJson.dimensions.map(function (dimJSON) {
+            // validate dimensions
+            if (data.dimensions) {
+                data.dimensions = data.dimensions.map(function (dimJSON) {
                     return analytics.parseDimension(dimJSON);
                 });
             } else {
-                self.dimensions = self.generateDimensions(self.data);
+                data.dimensions = self.generateDimensions(data.data);
             }
+
+            // store  data
+            self.newData = {
+                data: data.data,
+                dimensions: data.dimensions,
+                header: data.header
+            };
+
         },
 
         generateDimensions: function (data) {
@@ -340,11 +369,11 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
 
         createIndex: function () {
             var self = this;
-            self.keyDimensions = self.getKeyDimensions(self.dimensions);
-            self.dataDimensions = self.getDataDimensions(self.dimensions);
+            self.keyDimensions = self.getKeyDimensions(self.newData.dimensions);
+            self.dataDimensions = self.getDataDimensions(self.newData.dimensions);
             self.index = {};
-            for (var i = 0; i < self.data.length; ++i) {
-                var record = self.data[i];
+            for (var i = 0; i < self.newData.data.length; ++i) {
+                var record = self.newData.data[i];
                 var key = self.getKey(record);
                 if (self.index.hasOwnProperty(key)) {
                     throw "inconsistend db" + key;
@@ -364,11 +393,11 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
 
         filter: function (isValidFunction) {
             var self = this;
-            for (var i = 0; i < self.data.length; i++) {
-                if (isValidFunction.apply(self.data[i])) {
-                    self.data[i].valid = true;
+            for (var i = 0; i < self.newData.data.length; i++) {
+                if (isValidFunction.apply(self.newData.data[i])) {
+                    self.newData.data[i].valid = true;
                 } else {
-                    self.data[i].valid = false;
+                    self.newData.data[i].valid = false;
                 }
             }
         },
@@ -413,7 +442,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 return;
             }
             self.setDataDefaultValues(record);
-            self.data.push(record);
+            self.newData.data.push(record);
             self.index[key] = record;
         },
 
@@ -448,35 +477,35 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             var self = this;
             var key = self.getKey(record);
             delete self.index[key];
-            var index = $.inArray(record, self.data);
+            var index = $.inArray(record, self.newData.data);
             if (index >= 0) {
-                self.data.splice(index, 1);
+                self.newData.data.splice(index, 1);
             }
         },
 
         toJSON: function () {
 
-            // assemble saveData from self.data
+            // assemble save records from self.data.records
             var self = this;
             var saveData = [];
-            for (var i = 0; i < self.data.length; ++i) {
-                var record = $.extend({}, self.data[i]);
-                delete record.originalTuple;
-                delete record.measure;
-                delete record.value;
-                delete record.valid;
-                saveData.push(record);
+            for (var i = 0; i < self.newData.data.length; ++i) {
+                var saveRecord = $.extend({}, self.newData.data[i]);
+                delete saveRecord.originalTuple;
+                delete saveRecord.measure;
+                delete saveRecord.value;
+                delete saveRecord.valid;
+                saveData.push(saveRecord);
             }
 
             // serialize dimensions
-            var dimensions = self.dimensions.map(function (dimension) {
+            var dimensions = self.newData.dimensions.map(function (dimension) {
                 return dimension.toJSON();
             });
 
             // return JSON
             return {
                 data: saveData,
-                header: self.header,
+                header: self.newData.header,
                 dimensions: dimensions
             };
 
@@ -491,17 +520,20 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 alert("Builtin database cannot be changed. Save under different name.");
                 return;
             }
+            
             // increase version
-            self.header.version++;
+            self.newData.header.version++;
 
             // assemble string with json data
+            var newData = self.toJSON();
             var saveDataString = JSON.stringify({
-                oldData: self.oldData,
-                newData: self.toJSON()
+                oldData: self.oldData, // already json
+                newData: newData
             });
 
             // success handler
             var tmpOnSuccess = function () {
+                self.oldData = newData;
                 if (onSuccess) {
                     onSuccess();
                 }
@@ -541,8 +573,8 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 }
             }
             result += "\n";
-            for (i = 0; i < this.data.length; ++i) {
-                var record = this.data[i];
+            for (i = 0; i < this.newData.length; ++i) {
+                var record = this.newData[i];
                 for (var j = 0; j < this.dimensions.length; ++j) {
                     dimension = this.dimensions[j];
                     result += '"' + record[dimension.name] + '"';
@@ -583,6 +615,17 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             this.mainDatabase.removeRecords(records);
         },
 
+        getLength : function(){
+            return this.data.length;
+        },
+        
+        getDimensions : function(){
+            return this.dimensions;
+        },
+        
+        getData : function(){
+            return this.data;
+        }
 
     });
 

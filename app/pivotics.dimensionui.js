@@ -25,7 +25,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.db"], function (core, a
             self.updater = db.updater({
                 database: self.database
             });
-            self.dimensions = self.updater.newDimensions;
+            self.dimensions = self.updater.getNewDimensions();
 
             // setup container
             if (this.container) {
@@ -125,8 +125,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.db"], function (core, a
                 change: function (dataType) {
                     var extInitialValue = dimension.dataType.int2ext(dimension.initialValue);
                     dimension.dataType = dataType;
-                    dimension.initialValue = dimension.dataType.ext2int(extInitialValue);
-                    //self.database.convertDataType(dimension);
+                    dimension.initialValue = dimension.dataType.ext2int(extInitialValue);                 
                 }
             }));
             row.append(dataType);

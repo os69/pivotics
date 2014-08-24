@@ -164,10 +164,10 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
             return function () {
                 switch (cellType) {
                 case 'cell':
-                    col.text(cellData.measure.dataType.int2ext(cellData.value,'edit'));
+                    col.text(cellData.measure.dataType.int2ext(cellData.value, 'edit'));
                     break;
                 case 'dimension':
-                    col.text(cellData.element.dimension.dataType.int2ext(cellData.element.value,'edit'));
+                    col.text(cellData.element.dimension.dataType.int2ext(cellData.element.value, 'edit'));
                     break;
                 }
                 col.attr('contenteditable', true);
@@ -184,7 +184,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                         break;
                     }
                     self.onUpdate();
-                    if (pos && (cellType==='dimension' || cellData.tuples.length>0)) {
+                    if (pos && (cellType === 'dimension' || cellData.tuples.length > 0)) {
                         var elem = dompos.getElement(document.querySelector('table.tableui'), pos);
                         $(elem).focus();
                     }
@@ -592,8 +592,8 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
 
         determineMissingDimensions: function (inputDimensions) {
             var dimensions = [];
-            for (var i = 0; i < this.resultSet.database.dimensions.length; ++i) {
-                var dimension = this.resultSet.database.dimensions[i];
+            for (var i = 0; i < this.resultSet.database.getDimensions().length; ++i) {
+                var dimension = this.resultSet.database.getDimensions()[i];
                 if (inputDimensions.hasOwnProperty(dimension.name)) {
                     continue;
                 }

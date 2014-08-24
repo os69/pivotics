@@ -480,13 +480,13 @@ define(["pivotics.core.js"], function (core) {
             }
 
             // check for data
-            if (self.database.data.length === 0) {
+            if (self.database.getLength() === 0) {
                 return;
             }
 
             // collect tuples
             self.rootElement = analytics.element(self, -1, null);
-            analytics.dataLoop(self.database.data, self.dimensions, function (tuple) {
+            analytics.dataLoop(self.database.getData(), self.dimensions, function (tuple) {
                 self.rootElement.addTuple(tuple);
             });
 
@@ -805,7 +805,7 @@ define(["pivotics.core.js"], function (core) {
             self.createEmptyResultSet(self.resultSet, self.axes, 0);
 
             // aggregate1: collect tuples for all cells
-            analytics.dataLoop(self.database.data, self.axisDimensions, function (tuple) {
+            analytics.dataLoop(self.database.getData(), self.axisDimensions, function (tuple) {
                 var resultSet = self.resultSet;
                 var rowElement = self.axes[0].getElement(tuple);
                 var colElement = self.axes[1].getElement(tuple);

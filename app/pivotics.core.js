@@ -1,3 +1,11 @@
+/* global location */
+/* global window */
+/* global $ */
+/* global define */
+/* global alert */
+/* global chrome */
+/* global FileReader */
+
 define([], function() {
 
 	"use strict";
@@ -83,7 +91,7 @@ define([], function() {
 		// var search = decodeURIComponent(location.search.replace(/\+/g, " "));
 		// var search = decodeURIComponent(location.search);
 		var search = location.search;
-		var value = (RegExp(name + '=' + '(.+?)(&|$)').exec(search) || [ , null ])[1];
+		var value = (new RegExp(name + '=' + '(.+?)(&|$)').exec(search) || [ , null ])[1];
 		if (!value) {
 			return value;
 		}
@@ -220,7 +228,7 @@ define([], function() {
 		var appendInputField = function(parentNode, field) {
 			var nameCell = $("<td></td>");
 			parentNode.append(nameCell);
-			var field = options.fields[i];
+			field = options.fields[i];
 			nameCell.append(field.name);
 			var valueCell = $("<td></td>");
 			parentNode.append(valueCell);
