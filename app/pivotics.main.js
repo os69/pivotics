@@ -463,8 +463,12 @@ define(["pivotics.core",
             }
             core.url().parameter('db', databaseName).submit();
             database.name(databaseName);
-            database.save(function () {
-                alert("ok");
+            database.save(function (flgMerged) {
+                htmlloader.load('#main', 'analyze.html');
+                if (flgMerged)
+                    alert("ok, data was merged");
+                else
+                    alert("ok");
             }, function (error) {
                 alert("error when saving:" + error.statusText);
             });
@@ -477,6 +481,7 @@ define(["pivotics.core",
                 name: databaseName,
                 onSuccess: function (database) {
                     main.setHeader(database.title(), database.subtitle(), database.link());
+                    htmlloader.load('#main', 'analyze.html');
                     alert(database.getLength() + " records loaded");
                 },
                 onError: function (e) {
@@ -509,7 +514,6 @@ define(["pivotics.core",
     // start application
     // =========================================================================
     main.start();
-
     return main;
 
 });

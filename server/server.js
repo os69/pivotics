@@ -83,6 +83,7 @@ Server.prototype = {
 
         this.readBody(request, function (err, data) {
 
+            // error handling
             if (err) {
                 console.log("ERROR read request body: " + err.toString());
                 response.writeHead(500, {});
@@ -96,13 +97,13 @@ Server.prototype = {
             var oldData = data.oldData;
 
             // read data from file 
-            var filepath = path.join('.', params.pathname);
-            fs.readFile(filepath, function (err, fileData) {
+            var filePath = path.join('.', params.pathname);
+            fs.readFile(filePath, function (err, fileData) {
 
+                // error handling
                 if (err) {
-                    console.log("ERROR read file: " + err.toString());
-                    response.writeHead(500, {});
-                    response.end();
+                    console.log("file does not exist -> write without merge");
+                    self.writeFile(response, filePath, newData);
                     return;
                 }
 
@@ -111,20 +112,18 @@ Server.prototype = {
                 var mergeResult = self.merge(newData, oldData, fileData);
 
                 // save merged data
-                fs.writeFile(filepath, JSON.stringify(mergeResult.mergedData), function (err) {
+                self.writeFile(response, filePath, mergeResult.data);
 
-                    if (err) {
-                        console.log("ERROR write file: " + err.toString());
-                        response.writeHead(500, err.toString(), {});
-                        response.end();
-                        return;
-                    }
-
-                    response.writeHead(200);
-                    response.end();
-                    console.log("save file:" + filepath);
-
-                });
+                // send back merged data to client
+                if (mergeResult.merged) {
+                    var responseData = JSON.stringify(mergeResult.data);
+                    response.writeHead(200, {
+                        'Content-Length': responseData.length,
+                        'Content-Type': MIME_TYPES.json
+                    });
+                    response.write(responseData);
+                }
+                response.end();
 
             });
 
@@ -132,12 +131,41 @@ Server.prototype = {
         });
     },
 
+    writeFile: function (response, filePath, data) {
+        fs.writeFile(filePath, JSON.stringify(data), function (err) {
+            if (err) {
+                console.log("ERROR write file: " + err.toString());
+                response.writeHead(500, err.toString(), {});
+                response.end();
+                return;
+            }
+            response.writeHead(200);
+            response.end();
+            console.log("save file:" + filePath);
+        });
+    },
+
     merge: function (myData, baseData, otherData) {
-        //var merger = new merge.Merger(myData,baseData,otherData);
-        return {
-            mergedData: myData,
-            changed: false
-        };
+        if (baseData.header.version === otherData.header.version) {
+            // no merge necessary
+            return {
+                merged: false,
+                data: myData
+            };
+        } else {
+            // merge
+            var keyFields = this.extractKeyFields(myData.dimensions);
+            var mergedData = new merge.merge(myData.data, baseData.data, otherData.data, keyFields);
+            myData.header.version = otherData.header.version+1;
+            return {
+                merged: true,
+                data: {
+                    dimensions: myData.dimensions,
+                    data: mergedData,
+                    header: myData.header
+                }
+            };
+        }
     },
 
     serveFile: function (response, pathname) {
@@ -157,7 +185,17 @@ Server.prototype = {
             response.write(data);
             response.end();
         });
+    },
+
+    extractKeyFields: function (dimensions) {
+        var keyFields = [];
+        for (var i = 0; i < dimensions.length; ++i) {
+            var dimension = dimensions[i];
+            if (dimension.key) keyFields.push(dimension.name);
+        }
+        return keyFields;
     }
+
 
 };
 

@@ -62,6 +62,7 @@ class PivoticsHandler(BaseHTTPRequestHandler):
         # read data
         length = int(self.headers.getheader('content-length'))
         data = self.rfile.read(length) 
+        data = self.extractData(data)
         version = self.getVersion(data)
         
         # assemble filename
@@ -79,7 +80,7 @@ class PivoticsHandler(BaseHTTPRequestHandler):
                 f = open(filename,"r")
                 dataOld = f.read()
                 f.close()
-                versionOld = self.getVersion(dataOld)
+                versionOld = self.getVersion(json.loads(dataOld))
             except IOError,e:
                 versionOld=0
             
@@ -90,7 +91,7 @@ class PivoticsHandler(BaseHTTPRequestHandler):
                                     
             # save
             f = open(filename,"w")
-            f.write(data)
+            f.write(json.dumps(data))
             f.close()
                      
             # send response        
@@ -103,8 +104,15 @@ class PivoticsHandler(BaseHTTPRequestHandler):
         finally:
             FILE_LOCK.release()
             
-    def getVersion(self,data):
+    def extractData(self,data):
         data = json.loads(data)
+        if data['newData']:
+            return data['newData']
+        else:
+            return data
+
+    def getVersion(self,data):
+        #data = json.loads(data)
         return data['header']['version']            
 
 # usage

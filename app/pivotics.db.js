@@ -520,7 +520,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 alert("Builtin database cannot be changed. Save under different name.");
                 return;
             }
-            
+
             // increase version
             self.newData.header.version++;
 
@@ -532,16 +532,22 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             });
 
             // success handler
-            var tmpOnSuccess = function () {
-                self.oldData = newData;
+            var tmpOnSuccess = function (mergedData) {
+                if (mergedData && mergedData.header) {
+                    // merge happenend on server
+                    self.fromJSON(mergedData);
+                } else {
+                    // no merge
+                    self.oldData = $.extend(true, {}, newData);
+                }
                 if (onSuccess) {
-                    onSuccess();
+                    onSuccess(!!mergedData);
                 }
             };
 
             // error handler
             var tmpOnError = function (error) {
-                self.header.version--; // undo version increment
+                self.newData.header.version--; // undo version increment
                 if (onError) {
                     onError(error);
                 }
@@ -615,15 +621,15 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             this.mainDatabase.removeRecords(records);
         },
 
-        getLength : function(){
+        getLength: function () {
             return this.data.length;
         },
-        
-        getDimensions : function(){
+
+        getDimensions: function () {
             return this.dimensions;
         },
-        
-        getData : function(){
+
+        getData: function () {
             return this.data;
         }
 
