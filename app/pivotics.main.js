@@ -180,7 +180,8 @@ define(["pivotics.core",
 
             var URL = window.URL || window.webkitURL;
             var blob = new Blob([data], {
-                'type': 'text\/plain'
+                //'type': 'text\/plain'
+                'type': 'application\/octet-stream'
             });
             document.location = URL.createObjectURL(blob);
 

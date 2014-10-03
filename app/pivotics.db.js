@@ -162,7 +162,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
 
         convertDataType: function (record, dimension) {
             var value = record[dimension.name];
-            value = "" + dimension.dataType.int2ext(value);
+            value = "" + dimension.dataType.int2ext(value,'edit');
             record[dimension.name] = dimension.dataType.ext2int(value);
         },
 
@@ -190,7 +190,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             if (properties.data) {
                 // 1. data is set by caller
                 self.newData = {};
-                self.newData.dimensions = properties.dimensions;
+                self.newData.dimensions = properties.dimensions || [];
                 self.newData.data = properties.data;
                 self.newData.header = {
                     version: 0,
