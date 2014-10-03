@@ -5,3 +5,16 @@
 - change on row and columns but not for measures
 - enter this.status='planned' into filter field -> eval sets value and changes data
 -support tab
+
+-test: 
+x   merge
+    old server
+    chrome app
+    import
+    export
+    pivot in pivot
+    rename dimensions
+    create new tab
+    update docu
+    update chrome app
+

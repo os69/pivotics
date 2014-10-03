@@ -111,9 +111,6 @@ define(["pivotics.core",
         }
         var importDb = JSON.parse(dataRaw);
 
-        // reset version counter
-        importDb.header.version = 0;
-
         // create database from json object
         database = db.database({
             name: 'import',

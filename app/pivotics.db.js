@@ -187,7 +187,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             self.pathPrefix = "../data/";
             self.filename = properties.name;
 
-            if (properties.newData) {
+            if (properties.data) {
                 // 1. data is set by caller
                 self.newData = {};
                 self.newData.dimensions = properties.dimensions;
@@ -578,20 +578,20 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
         exportCsv: function () {
             var result = "";
             var dimension;
-            for (var i = 0; i < this.dimensions.length; ++i) {
-                dimension = this.dimensions[i];
+            for (var i = 0; i < this.newData.dimensions.length; ++i) {
+                dimension = this.newData.dimensions[i];
                 result += '"' + dimension.name + '"';
-                if (i < this.dimensions.length - 1) {
+                if (i < this.newData.dimensions.length - 1) {
                     result += ",";
                 }
             }
             result += "\n";
-            for (i = 0; i < this.newData.length; ++i) {
-                var record = this.newData[i];
-                for (var j = 0; j < this.dimensions.length; ++j) {
-                    dimension = this.dimensions[j];
+            for (i = 0; i < this.newData.data.length; ++i) {
+                var record = this.newData.data[i];
+                for (var j = 0; j < this.newData.dimensions.length; ++j) {
+                    dimension = this.newData.dimensions[j];
                     result += '"' + record[dimension.name] + '"';
-                    if (j < this.dimensions.length - 1) {
+                    if (j < this.newData.dimensions.length - 1) {
                         result += ",";
                     } else {
                         result += "\n";
