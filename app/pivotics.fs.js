@@ -74,8 +74,15 @@ define(["pivotics.core"], function (core) {
             }, function (fileEntry) {
                 fileEntry.createWriter(function (fileWriter) {
 
+                    var truncated = false;
+                    
                     fileWriter.onwriteend = function (e) {
-                        onSuccess();
+                        if(!truncated){
+                            truncated = true;
+                            this.truncate(this.position);  // WTF?
+                                                           // http://stackoverflow.com/questions/6792607/using-the-html5-filewriter-truncate-method                                                        
+                            onSuccess();
+                        }                        
                     };
 
                     fileWriter.onerror = function (e) {

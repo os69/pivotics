@@ -206,8 +206,8 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 self.load(function () {
                     self.createIndex();
                     properties.onSuccess(self);
-                }, function () {
-                    properties.onError();
+                }, function (error) {
+                    properties.onError(error);
                 });
             }
         },
@@ -525,11 +525,18 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             self.newData.header.version++;
 
             // assemble string with json data
+            var saveDataString;
             var newData = self.toJSON();
-            var saveDataString = JSON.stringify({
-                oldData: self.oldData, // already json
-                newData: newData
-            });
+            if (core.isChromeApp()) {
+                // only new data
+                saveDataString = JSON.stringify(newData);
+            } else {
+                // send old and new data for merge process on server
+                saveDataString = JSON.stringify({
+                    oldData: self.oldData, // already json
+                    newData: newData
+                });
+            }
 
             // success handler
             var tmpOnSuccess = function (mergedData) {
