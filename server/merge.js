@@ -66,6 +66,8 @@ exports.Records.prototype = {
         if (diffFields.length > 0) {
             return {
                 status: '!=',
+                record1: record1,
+                record2: record2,
                 diffFields: diffFields
             };
         } else {
@@ -121,9 +123,13 @@ exports.Records.prototype = {
                 break;
             case '!=':
                 record = resultRecords.getByKey(diffRecord.key);
-                for (var j = 0; j < diffRecord.diffFields.length; ++j) {
-                    var diffField = diffRecord.diffFields[j];
-                    record[diffField.fieldName] = diffField.valueNew;
+                if (record) {
+                    for (var j = 0; j < diffRecord.diffFields.length; ++j) {
+                        var diffField = diffRecord.diffFields[j];
+                        record[diffField.fieldName] = diffField.valueNew;
+                    }
+                } else {
+                    resultRecords.addRecord(diffRecord.record1);
                 }
                 break;
             }

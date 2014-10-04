@@ -10,11 +10,11 @@
 x   merge
     old server
     chrome app
-    import
-    export
-    pivot in pivot
-    rename dimensions
-    create new tab
+x   import
+x   export
+x   pivot in pivot
+x   rename dimensions
+x   create new tab
     update docu
     update chrome app
 

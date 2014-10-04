@@ -41,13 +41,23 @@ define(["pivotics.core",
     // =========================================================================
     main.initImport = function () {
 
+        var calcDbName = function (fileName) {
+            var dbName;
+            // split filename from extension
+            var index = fileName.lastIndexOf('.');
+            if (index >= 0) dbName = fileName.slice(0, index);
+            // split path
+            dbName = dbName.split(/[\/\\]/).pop();
+            return dbName;
+        };
+
         $("#importButton").click(function () {
             var file = $("#importInput")[0].files[0];
             core.readFile(file, $("#importStatus"), function (file, evt) {
                 if (core.endsWith(file.name.toLowerCase(), ".csv")) {
-                    main.importCsv(evt.target.result);
+                    main.importCsv(evt.target.result, calcDbName(file.name));
                 } else {
-                    main.importJSON(evt.target.result);
+                    main.importJSON(evt.target.result, calcDbName(file.name));
                 }
                 $("#importStatus").text(database.getLength() + " records imported to memory");
                 main.setHeader(database.title(), database.subtitle(), database.link());
@@ -78,7 +88,7 @@ define(["pivotics.core",
     // =========================================================================
     // import csv
     // =========================================================================
-    main.importCsv = function (dataRaw) {
+    main.importCsv = function (dataRaw, dbName) {
 
         // convert csv to objects
         var data = $.csv.toObjects(dataRaw);
@@ -94,7 +104,7 @@ define(["pivotics.core",
         database = db.database({
             data: data,
             dimensions: dimensions,
-            name: 'import'
+            name: dbName
         });
 
     };
@@ -102,7 +112,7 @@ define(["pivotics.core",
     // =========================================================================
     // import json
     // =========================================================================
-    main.importJSON = function (dataRaw) {
+    main.importJSON = function (dataRaw, dbName) {
 
         // convert json string to json object
         if (dataRaw.length === 0) {
@@ -113,10 +123,13 @@ define(["pivotics.core",
 
         // create database from json object
         database = db.database({
-            name: 'import',
+            name: dbName,
             data: []
         });
         database.fromJSON(importDb);
+
+        // reset version counter
+        database.newData.header.version = 0;
 
     };
     // =========================================================================

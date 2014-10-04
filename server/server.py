@@ -82,10 +82,10 @@ class PivoticsHandler(BaseHTTPRequestHandler):
                 f.close()
                 versionOld = self.getVersion(json.loads(dataOld))
             except IOError,e:
-                versionOld=0
+                versionOld=-1
             
             # check version
-            if version!=1 and versionOld+1!=version:        
+            if versionOld+1!=version and versionOld!=-1 and version!=1:        
                 self.send_error(500,"Version error, file was saved by other user")
                 return
                                     

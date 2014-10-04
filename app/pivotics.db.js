@@ -203,8 +203,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                 properties.onSuccess(self);
             } else {
                 // 2. data is loaded from file
-                self.load(function () {
-                    self.createIndex();
+                self.load(function () {            
                     properties.onSuccess(self);
                 }, function (error) {
                     properties.onError(error);
@@ -344,11 +343,10 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             }
 
             // store  data
-            self.newData = {
-                data: data.data,
-                dimensions: data.dimensions,
-                header: data.header
-            };
+            self.newData = data;
+                        
+            // create index
+            self.createIndex();
 
         },
 
@@ -540,7 +538,8 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
 
             // success handler
             var tmpOnSuccess = function (mergedData) {
-                if (mergedData && mergedData.header) {
+                var merged = !!(mergedData && mergedData.header);
+                if (merged) {
                     // merge happenend on server
                     self.fromJSON(mergedData);
                 } else {
@@ -548,7 +547,7 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
                     self.oldData = $.extend(true, {}, newData);
                 }
                 if (onSuccess) {
-                    onSuccess(!!mergedData);
+                    onSuccess(merged);
                 }
             };
 

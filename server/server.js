@@ -100,8 +100,10 @@ Server.prototype = {
             var filePath = path.join('.', params.pathname);
             fs.readFile(filePath, function (err, fileData) {
 
-                // error handling
-                if (err) {
+                // write data without merge if
+                //  (1) no existing file on filesystem
+                //  (2) version=1 : new database to be initalized 
+                if (err || newData.header.version===1) {
                     console.log("file does not exist -> write without merge");
                     self.writeFile(response, filePath, newData);
                     return;
