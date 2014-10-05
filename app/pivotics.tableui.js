@@ -173,7 +173,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                 col.attr('contenteditable', true);
                 col.focusout(function (e) {
                     col.attr('contenteditable', false);
-                    var pos = dompos.getPosition(e.relatedTarget);
+                    var pos = dompos.getPosition(e.relatedTarget);                    
                     var value = col.html();
                     switch (cellType) {
                     case 'cell':

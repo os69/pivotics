@@ -1,7 +1,11 @@
+
+* {outline-color: red;}
+
 body {
 	background-color: black;
 	color: gray;
 	font-family: arial;
+    
 }
 
 a {
