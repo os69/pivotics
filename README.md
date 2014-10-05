@@ -84,6 +84,21 @@ Whether you use the tool for scrum planning, organizing your private TODO, or ma
 <a name="installation"></a>
 # Installation
 
+## Using Included Node.js Webserver
+
+Ensure that [Node.js](http://nodejs.org/) is installed.
+
+Download <a href="https://github.com/os69/pivotics/archive/master.zip">Pivotics</a> and unzip the archive. Switch to 
+the pivotics directory and start the included node.js based webserver by
+
+    node server/server.js
+
+Open 
+
+    http://localhost:51000/app/pivotics.html
+
+The node.js server supports a basic merge functionality. In case of conflicts the last change wins. See server/merge.js in case you want to change this.
+
 ## Using Included Python Webserver
 
 Ensure that [Python 2](http://www.python.org/) is installed.
