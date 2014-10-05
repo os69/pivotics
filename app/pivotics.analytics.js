@@ -266,7 +266,7 @@ define(["pivotics.core.js"], function (core) {
             return tuple[self.name];
         },
 
-        initialValue: "",
+        initialValue: "0",
 
         toJSON: function () {
             return {

@@ -211,6 +211,18 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.fs"], function (core, a
             }
         },
 
+        initializeData : function(){
+            this.newData.data =[];
+            this.newData.header.version =0;
+            this.oldData=null;            
+            var record = {};
+            for(var i=0;i<this.newData.dimensions.length;++i){
+                var dimension = this.newData.dimensions[i];
+                record[dimension.name]=dimension.initialValue;
+            }
+            this.newData.data.push(record);
+        },
+        
         getData: function () {
             return this.newData.data;
         },

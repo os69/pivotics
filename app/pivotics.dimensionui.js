@@ -1,5 +1,6 @@
 /* global define */
 /* global $ */
+/* global alert */
 
 define(["pivotics.core", "pivotics.analytics", "pivotics.db"], function (core, analytics, db) {
 
@@ -71,6 +72,14 @@ define(["pivotics.core", "pivotics.analytics", "pivotics.db"], function (core, a
                     self.onApply();
                 }
                 self.render();
+            });
+
+            // initialze data button
+            var initializeDataButton = $("<button class='button'>Clear Data & Generate Test Data</button>");
+            this.container.append(initializeDataButton);
+            initializeDataButton.click(function () {
+                self.database.initializeData();
+                alert('Data was cleared and a single record with initial values created');
             });
 
         },

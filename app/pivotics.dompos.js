@@ -18,6 +18,19 @@ define([], function () {
         return null;
     }
 
+    function getClosestParentByClass(el, cls) {
+        do {
+            if(!el.classList){
+                return null;
+            }
+            if (el.classList.contains(cls)) {
+                return el;
+            }
+            el = el.parentNode;
+        } while (el);
+        return null;
+    }
+
     function getFirstChild(el, tag) {
         tag = tag.toUpperCase();
         return el.querySelector(tag);
@@ -83,7 +96,8 @@ define([], function () {
                 if (!element) break;
                 var posElement = module.getCellPosition(element);
                 pos.unshift(posElement);
-                element = getClosestParent(element, 'TABLE');
+                element = getClosestParentByClass(element, 'tableui');
+                if(!element) return null;
             }
             if (pos.length === 0) return null;
             return pos;

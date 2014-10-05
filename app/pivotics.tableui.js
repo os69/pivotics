@@ -99,7 +99,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                                 value = cellData.element.dimension.dataType.int2ext(cellData.element.value);
                                 col = $("<td tabindex=0 colspan=" + cellData.element.getNumberLeafs() + ">" + value + "</td>");
                                 if (cellData.element.dimension.name != "measure" && cellData.element.value !== analytics.sumExtendFieldName) {
-                                    col.click(self.createClickCellFunction(col, cellData, 'dimension'));
+                                    col.focusin(self.createClickCellFunction(col, cellData, 'dimension'));
                                 }
                                 self.assignColClasses(col, rowIndex, colIndex);
                                 row.append(col);
