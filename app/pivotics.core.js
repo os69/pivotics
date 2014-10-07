@@ -82,7 +82,7 @@ define([], function() {
 				target[name] = source[name];
 			}
 		}
-	},
+	};
 
 	// =========================================================================
 	// get url parameter
@@ -332,6 +332,7 @@ define([], function() {
 			return false;
 		}
         if(!chrome.runtime) return false;
+        if(!chrome.runtime.getManifest) return false;
 		var manifest = chrome.runtime.getManifest();
 		if(core.startsWith(manifest.name,"Pivotics")){
 			return true;
