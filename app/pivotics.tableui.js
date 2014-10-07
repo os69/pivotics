@@ -3,6 +3,7 @@
 /*global document */
 /*global window */
 /*global alert */
+/*global console */
 
 define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotics.dompos"], function (core, renderer, analytics, dompos) {
 
@@ -68,9 +69,12 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
             }
         },
 
+        renderId: 0,
+
         render: function (parentNode) {
 
             var self = this;
+            self.renderId++;
             self.parentNode = parentNode;
             self.tableNode = $("<table class='tableui'></table>");
             var fillSpace = false;
@@ -123,6 +127,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                                 col.addClass("context-menu");
                                 col.data("cellData", cellData);
                                 col.data("resultSet", self);
+                                col.data("renderId", self.renderId);
                                 row.append(col);
                             }
                         } else {
@@ -132,7 +137,8 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                                 parentNode: row,
                                 table: self,
                                 cellData: cellData,
-                                tableui: tableui
+                                tableui: tableui,
+                                renderId: self.renderId
                             });
                             if (self.cellRenderer.isClickable) {
                                 col.focusin(self.createClickCellFunction(col, cellData, 'cell'));
@@ -142,7 +148,25 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                     }
                 }
             }
+
             self.parentNode.append(self.tableNode);
+
+            // special logic for firefox: 
+            // update cell when focus is lost
+            // happens time delayed to give the update handler in createClickCellFunctionFirefox a chance
+            // to do the update 
+            // (update in createClickCellFunctionFirefox is better because focus is restored)
+            self.tableNode.focusout(function (e) {
+                if (!self.cellUpdate) return;
+                var cellUpdate = self.cellUpdate;
+                window.setTimeout(function () {
+                    if (self.cellUpdate && cellUpdate === self.cellUpdate) {
+                        self.cellUpdate = null;
+                        cellUpdate.apply(self, [false]);
+                    }
+                }, 100);
+            });
+
             self.renderFilterToolbar(self.parentNode);
             return self.tableNode;
         },
@@ -159,7 +183,15 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
             field.addClass("f_" + cell.element.value);
         },
 
+
         createClickCellFunction: function (col, cellData, cellType) {
+            if (core.browserType.indexOf('Firefox') >= 0)
+                return this.createClickCellFunctionFirefox(col, cellData, cellType);
+            else
+                return this.createClickCellFunctionChrome(col, cellData, cellType);
+        },
+
+        createClickCellFunctionChrome: function (col, cellData, cellType) {
             var self = this;
             return function () {
                 switch (cellType) {
@@ -172,8 +204,8 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                 }
                 col.attr('contenteditable', true);
                 col.focusout(function (e) {
-                    col.attr('contenteditable', false);
-                    var pos = dompos.getPosition(e.relatedTarget);                    
+                    col.attr('contenteditable', false);                    
+                    var pos = dompos.getPosition(e.relatedTarget); // store focus 
                     var value = col.html();
                     switch (cellType) {
                     case 'cell':
@@ -183,12 +215,65 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                         self.changeDimension(cellData, value);
                         break;
                     }
-                    self.onUpdate();
+                    self.onUpdate(); // this redraws the complete pivot table                    
                     if (pos && (cellType === 'dimension' || cellData.tuples.length > 0)) {
                         var elem = dompos.getElement(document.querySelector('table.tableui'), pos);
-                        $(elem).focus();
+                        $(elem).focus(); // restore focus after redrawing
                     }
                 });
+            };
+        },
+
+        createClickCellFunctionFirefox: function (col, cellData, cellType) {
+            var self = this;
+            return function (e) {              
+
+                // special logic for firefox because e.relatedTarget is not supported:
+                // - update previous selected cell (redraw pivot table) 
+                // - make current cell editable
+                // - register current cell for delayed update (happens when next cell is focused)
+                                        
+                // check if cell update handler is registered 
+                if (self.cellUpdate) {
+                    var pos = dompos.getPosition(e.currentTarget); // store focus
+                    var cellUpdate = self.cellUpdate;
+                    self.cellUpdate = null;
+                    cellUpdate.apply(self, [true]);  // this redraws the pivot table
+                    if (pos && (cellType === 'dimension' || cellData.tuples.length > 0)) {
+                        var elem = dompos.getElement(document.querySelector('table.tableui'), pos);
+                        $(elem).focus(); // restore the focus
+                    }
+                    return;
+                }
+
+                // fill cell
+                switch (cellType) {
+                case 'cell':
+                    col.text(cellData.measure.dataType.int2ext(cellData.value, 'edit'));
+                    break;
+                case 'dimension':
+                    col.text(cellData.element.dimension.dataType.int2ext(cellData.element.value, 'edit'));
+                    break;
+                }
+                
+                // make cell editable
+                col.attr('contenteditable', true);
+
+                // register cell update handler (registration is evaluated in createClickCellFunctionFirefox and delayed in render)
+                self.cellUpdate = function (flgRepaint) {
+                    col.attr('contenteditable', false);
+                    var value = col.html();
+                    switch (cellType) {
+                    case 'cell':
+                        self.changeCell(cellData, value);
+                        break;
+                    case 'dimension':
+                        self.changeDimension(cellData, value);
+                        break;
+                    }
+                    if (flgRepaint) self.onUpdate(); // this redraws the complete pivot table         
+                };
+
             };
         },
 
@@ -399,7 +484,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                 alert("not possible -> put measures on columns");
                 return;
             }
-
+          
             var cellData = triggerObject.data("cellData");
             var fields = [];
             for (var col = 0; col <= cellData.col; ++col) {
