@@ -37,20 +37,21 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
         },
 
         initContextMenu: function () {
+            var self = this;
             if (!tableui.contextMenuInitialized) {
                 tableui.contextMenuInitialized = true;
                 $.contextMenu({
                     selector: '.context-menu',
-                    callback: function (key, options) {
+                    callback: function (key, options,data) {
                         switch (key) {
                         case "change":
-                            this.data("resultSet").contextMenuChange(this, key, options);
+                            self.contextMenuChange(data.cellData);
                             break;
                         case "create":
-                            this.data("resultSet").contextMenuCreate(this, key, options);
+                            self.contextMenuCreate(data.cellData);
                             break;
                         case "delete":
-                            this.data("resultSet").contextMenuDelete(this, key, options);
+                            self.contextMenuDelete(data.cellData);
                             break;
                         }
                     },
@@ -125,8 +126,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                                     col.focusin(self.createClickCellFunction(col, cellData, 'dimension'));
                                 }
                                 col.addClass("context-menu");
-                                col.data("cellData", cellData);
-                                col.data("resultSet", self);
+                                col.data("cellData", cellData);                                
                                 col.data("renderId", self.renderId);
                                 row.append(col);
                             }
@@ -162,7 +162,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                 window.setTimeout(function () {
                     if (self.cellUpdate && cellUpdate === self.cellUpdate) {
                         self.cellUpdate = null;
-                        cellUpdate.apply(self, [false]);
+                        cellUpdate.apply(self, [true]);
                     }
                 }, 100);
             });
@@ -477,7 +477,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
 
         },
 
-        contextMenuChange: function (triggerObject, key, options) {
+        contextMenuChange: function (cellData) {
             var self = this;
 
             if (self.resultSet.measureInfo.measuresOnRows) {
@@ -485,7 +485,6 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                 return;
             }
           
-            var cellData = triggerObject.data("cellData");
             var fields = [];
             for (var col = 0; col <= cellData.col; ++col) {
                 var cellData2 = self.resultSet.axis1Table[cellData.row][col];
@@ -513,9 +512,8 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
             });
         },
 
-        contextMenuCreate: function (triggerObject, key, options) {
+        contextMenuCreate: function (cellData) {
             var self = this;
-            var cellData = triggerObject.data("cellData");
             var measure = null;
             var inputDimensions = {};
             var cellData2;
@@ -667,9 +665,8 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
 
         },
 
-        contextMenuDelete: function (triggerObject, key, options) {
+        contextMenuDelete: function (cellData) {
             var self = this;
-            var cellData = triggerObject.data("cellData");
             var tuples = cellData.element.getLeafTuples();
             self.resultSet.deleteTuples(tuples);
             self.onUpdate();
