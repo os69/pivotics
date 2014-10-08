@@ -124,6 +124,9 @@ textarea,input {
 	left: 1px;
 }
 
+.dimensionui button{
+    margin-right:10px;
+}
 .dimensionui table {
 	border-collapse: collapse;
 	border-width: 1px;
