@@ -14,6 +14,8 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
     // =========================================================================
     var tableui = {};
 
+    var tcounter=0;
+    
     tableui.Table = core.createClass({
 
         init: function (params) {
@@ -34,24 +36,25 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
             }
             this.filterToolbarMap = {};
             this.initContextMenu();
+            this.tableCounter = ++tcounter;
         },
 
-        initContextMenu: function () {
-            var self = this;
+        initContextMenu: function () {            
             if (!tableui.contextMenuInitialized) {
                 tableui.contextMenuInitialized = true;
                 $.contextMenu({
                     selector: '.context-menu',
-                    callback: function (key, options,data) {
+                    callback: function (key, options,data) {                  
                         switch (key) {
                         case "change":
-                            self.contextMenuChange(data.cellData);
+                            // use data.tableUi instead of self because context menu is initalized only one times
+                            data.tableUi.contextMenuChange(data.cellData);
                             break;
                         case "create":
-                            self.contextMenuCreate(data.cellData);
+                            data.tableUi.contextMenuCreate(data.cellData);
                             break;
                         case "delete":
-                            self.contextMenuDelete(data.cellData);
+                            data.tableUi.contextMenuDelete(data.cellData);
                             break;
                         }
                     },
@@ -127,6 +130,7 @@ define(["pivotics.core", "pivotics.cellrenderer", "pivotics.analytics", "pivotic
                                 }
                                 col.addClass("context-menu");
                                 col.data("cellData", cellData);                                
+                                col.data("tableUi", self);
                                 col.data("renderId", self.renderId);
                                 row.append(col);
                             }
